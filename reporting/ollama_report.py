@@ -3,10 +3,6 @@ import subprocess
 from pathlib import Path
 from datetime import datetime
 
-
-
-MODEL_NAME = "llama3.1"
-
 PROMPT_TEMPLATE = """You are a cloud governance auditor specializing in Oracle Cloud Infrastructure (OCI).
 
 Write a professional assessment report based ONLY on the JSON input below.
@@ -28,8 +24,8 @@ JSON INPUT:
 {json_data}
 """
 
-def run_ollama(prompt: str, model_name: str) -> str:
-    # Calls: ollama run <model>
+
+def _run_ollama(prompt: str, model_name: str) -> str:
     result = subprocess.run(
         ["ollama", "run", model_name],
         input=prompt,
@@ -40,19 +36,31 @@ def run_ollama(prompt: str, model_name: str) -> str:
         raise RuntimeError(f"Ollama failed: {result.stderr}")
     return result.stdout.strip()
 
-def main():
-    report_json_path = Path("reports/report.json")
-    if not report_json_path.exists():
-        raise FileNotFoundError("reports/report.json not found. Run `python main.py` first.")
 
-    data = json.loads(report_json_path.read_text(encoding="utf-8"))
+def out_path_():
+    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+    return "reports/report_llm " + timestamp + ".md"
+
+
+def generate_llm_report(
+        report_json_path: str = "reports/report.json",
+        out_md_path: str = out_path_(),
+        model_name: str = "llama3.1"
+) -> str:
+    report_path = Path(report_json_path)
+    if not report_path.exists():
+        raise FileNotFoundError(f"{report_json_path} not found. Run main.py first.")
+
+    data = json.loads(report_path.read_text(encoding="utf-8"))
     prompt = PROMPT_TEMPLATE.format(json_data=json.dumps(data, indent=2))
 
-    output = run_ollama(prompt, MODEL_NAME)
-    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
-    out_path = Path("reports/report_llm " + timestamp + ".md")
+    output = _run_ollama(prompt, model_name)
+
+    out_path = Path(out_md_path)
     out_path.write_text(output, encoding="utf-8")
-    print("LLM report generated:", out_path)
+    return str(out_path)
+
 
 if __name__ == "__main__":
-    main()
+    out = generate_llm_report()
+    print("LLM report generated:", out)

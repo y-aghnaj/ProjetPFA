@@ -1,6 +1,7 @@
 import os
 from recommendations.generator import generate_recommendations
 import json
+from reporting.ollama_report import generate_llm_report
 import argparse
 from pathlib import Path
 from graph.resource_graph import ResourceGraph
@@ -32,6 +33,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--scenario", default="data/oci_mock.json",
                         help="Path to JSON file OR scenario name in data/scenarios (without .json)")
+    parser.add_argument("--llm", action="store_true", help="Generate LLM Markdown report using Ollama")
+    parser.add_argument("--llm-model", default="llama3.1", help="Ollama model name (e.g., llama3.1)")
     args = parser.parse_args()
 
     state = load_state(scenario_path(args.scenario))
@@ -96,3 +99,13 @@ if __name__ == "__main__":
         json.dump(report_json, fp, indent=2)
 
     print("\nReport exported to: reports/report.json")
+    if args.llm:
+        try:
+            out_path = generate_llm_report(
+                report_json_path="reports/report.json",
+                out_md_path="reports/report_llm.md",
+                model_name=args.llm_model
+            )
+            print("LLM report generated:", out_path)
+        except Exception as e:
+            print("LLM report generation failed:", e)
