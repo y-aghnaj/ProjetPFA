@@ -1,6 +1,5 @@
 import os
 from recommendations.generator import generate_recommendations
-import json
 from graph.resource_graph import ResourceGraph
 from scoring.scoring_engine import ScoringEngine
 from rules.engine import RuleEngine
@@ -50,9 +49,9 @@ if __name__ == "__main__":
     print("Global score:", report.global_score, "/ 100")
     print("Weights:", report.weights)
 
-    print("\n=== Explainability Pack (Evidence) ===")
-    for e in report.evidence:
-        print(f"- {e['rule_id']} ({e['severity']}) risk={e['risk']} on {e['resource_id']}")
+    print("\n=== Explainability Pack (Penalties) ===")
+    for p in report.penalties:
+        print(f"- {p['rule_id']} ({p['severity']}) => -{p['penalty']} on {p['resource_id']}")
     recos = generate_recommendations(findings)
 
     print("\n=== Recommendations ===")

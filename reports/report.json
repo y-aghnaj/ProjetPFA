@@ -5,45 +5,49 @@
     "edges": 3
   },
   "scores": {
-    "security_score": 48,
+    "security_score": 37,
     "performance_score": 100,
-    "global_score": 64,
+    "global_score": 56,
     "weights": {
       "security": 0.7,
       "performance": 0.3
     },
-    "penalties": [
+    "evidence": [
       {
         "rule_id": "OCI.SEC.BUCKET.PUBLIC",
         "resource_id": "bucket_payments",
         "severity": "HIGH",
-        "penalty": 15,
+        "risk": 0.25,
         "message": "Object Storage bucket is public. This may expose sensitive data.",
-        "responsibility": "CUSTOMER"
+        "responsibility": "CUSTOMER",
+        "pillar": "security"
       },
       {
         "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
         "resource_id": "bucket_payments",
         "severity": "MEDIUM",
-        "penalty": 7,
+        "risk": 0.12,
         "message": "Object Storage bucket encryption is disabled.",
-        "responsibility": "CUSTOMER"
+        "responsibility": "CUSTOMER",
+        "pillar": "security"
       },
       {
         "rule_id": "OCI.SEC.DB.ENCRYPTION",
         "resource_id": "adb_finance",
         "severity": "HIGH",
-        "penalty": 15,
+        "risk": 0.25,
         "message": "Database encryption is disabled. This increases data exposure risk.",
-        "responsibility": "CUSTOMER"
+        "responsibility": "CUSTOMER",
+        "pillar": "security"
       },
       {
         "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
         "resource_id": "nsg_web",
         "severity": "HIGH",
-        "penalty": 15,
+        "risk": 0.25,
         "message": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk.",
-        "responsibility": "CUSTOMER"
+        "responsibility": "CUSTOMER",
+        "pillar": "security"
       }
     ]
   },
