@@ -1,6 +1,9 @@
 import json
 import subprocess
 from pathlib import Path
+from datetime import datetime
+
+
 
 MODEL_NAME = "llama3.1"
 
@@ -46,8 +49,8 @@ def main():
     prompt = PROMPT_TEMPLATE.format(json_data=json.dumps(data, indent=2))
 
     output = run_ollama(prompt, MODEL_NAME)
-
-    out_path = Path("reports/report_llm.md")
+    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+    out_path = Path("reports/report_llm " + timestamp + ".md")
     out_path.write_text(output, encoding="utf-8")
     print("LLM report generated:", out_path)
 
