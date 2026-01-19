@@ -7,7 +7,8 @@ from rules.engine import RuleEngine
 from rules.security_rules import (
     rule_public_object_storage_bucket,
     rule_bucket_encryption,
-    rule_db_encryption
+    rule_db_encryption,
+    rule_ssh_open_to_world
 )
 
 def load_state(path: str):
@@ -27,6 +28,7 @@ if __name__ == "__main__":
     engine.register(rule_public_object_storage_bucket)
     engine.register(rule_bucket_encryption)
     engine.register(rule_db_encryption)
+    engine.register(rule_ssh_open_to_world)
 
     findings = engine.run(rg.graph)
 
