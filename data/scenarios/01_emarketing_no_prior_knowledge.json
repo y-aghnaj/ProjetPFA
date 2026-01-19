@@ -1,0 +1,15 @@
+{
+  "account": { "provider": "OCI", "tenancy_ocid": "ocid1.tenancy.oc1..emarketing" },
+  "resources": [
+    { "id": "bucket_assets", "type": "object_storage_bucket", "name": "marketing-assets", "compartment": "comp_mkt", "public": true, "encrypted": false, "logging_enabled": false },
+    { "id": "nsg_web", "type": "network_security_group", "name": "web-nsg", "ingress_rules": [
+      { "protocol": "tcp", "port": 22, "source": "0.0.0.0/0" },
+      { "protocol": "tcp", "port": 80, "source": "0.0.0.0/0" }
+    ]},
+    { "id": "user_junior", "type": "user", "name": "junior", "role": "admin" }
+  ],
+  "relations": [
+    { "from": "user_junior", "to": "bucket_assets", "relation": "created" },
+    { "from": "nsg_web", "to": "bucket_assets", "relation": "exposes" }
+  ]
+}

@@ -1,149 +1,19 @@
 {
   "provider": "OCI",
   "summary": {
-    "nodes": 5,
-    "edges": 3
+    "nodes": 4,
+    "edges": 2
   },
   "scores": {
-    "security_score": 48,
+    "security_score": 100,
     "performance_score": 100,
-    "global_score": 64,
+    "global_score": 100,
     "weights": {
       "security": 0.7,
       "performance": 0.3
     },
-    "penalties": [
-      {
-        "rule_id": "OCI.SEC.BUCKET.PUBLIC",
-        "resource_id": "bucket_payments",
-        "severity": "HIGH",
-        "penalty": 15,
-        "message": "Object Storage bucket is public. This may expose sensitive data.",
-        "responsibility": "CUSTOMER"
-      },
-      {
-        "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
-        "resource_id": "bucket_payments",
-        "severity": "MEDIUM",
-        "penalty": 7,
-        "message": "Object Storage bucket encryption is disabled.",
-        "responsibility": "CUSTOMER"
-      },
-      {
-        "rule_id": "OCI.SEC.DB.ENCRYPTION",
-        "resource_id": "adb_finance",
-        "severity": "HIGH",
-        "penalty": 15,
-        "message": "Database encryption is disabled. This increases data exposure risk.",
-        "responsibility": "CUSTOMER"
-      },
-      {
-        "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
-        "resource_id": "nsg_web",
-        "severity": "HIGH",
-        "penalty": 15,
-        "message": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk.",
-        "responsibility": "CUSTOMER"
-      }
-    ]
+    "penalties": []
   },
-  "findings": [
-    {
-      "rule_id": "OCI.SEC.BUCKET.PUBLIC",
-      "resource_id": "bucket_payments",
-      "severity": "HIGH",
-      "responsibility": "CUSTOMER",
-      "message": "Object Storage bucket is public. This may expose sensitive data.",
-      "evidence": {
-        "public": true,
-        "name": "payments-bucket",
-        "compartment": "comp_finance"
-      }
-    },
-    {
-      "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
-      "resource_id": "bucket_payments",
-      "severity": "MEDIUM",
-      "responsibility": "CUSTOMER",
-      "message": "Object Storage bucket encryption is disabled.",
-      "evidence": {
-        "encrypted": false,
-        "name": "payments-bucket"
-      }
-    },
-    {
-      "rule_id": "OCI.SEC.DB.ENCRYPTION",
-      "resource_id": "adb_finance",
-      "severity": "HIGH",
-      "responsibility": "CUSTOMER",
-      "message": "Database encryption is disabled. This increases data exposure risk.",
-      "evidence": {
-        "encrypted": false,
-        "name": "finance-adb"
-      }
-    },
-    {
-      "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
-      "resource_id": "nsg_web",
-      "severity": "HIGH",
-      "responsibility": "CUSTOMER",
-      "message": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk.",
-      "evidence": {
-        "protocol": "tcp",
-        "port": 22,
-        "source": "0.0.0.0/0",
-        "nsg": "web-nsg"
-      }
-    }
-  ],
-  "recommendations": [
-    {
-      "rule_id": "OCI.SEC.BUCKET.PUBLIC",
-      "resource_id": "bucket_payments",
-      "title": "Make Object Storage bucket private",
-      "steps": [
-        "Disable public access on the bucket.",
-        "Apply least-privilege IAM policies to restrict access.",
-        "Use pre-authenticated requests or signed URLs for controlled sharing.",
-        "Enable logging and monitor access events."
-      ],
-      "responsibility": "CUSTOMER",
-      "rationale": "Public buckets can expose sensitive data and are a common cause of cloud data leaks."
-    },
-    {
-      "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
-      "resource_id": "bucket_payments",
-      "title": "Enable encryption at rest for Object Storage bucket",
-      "steps": [
-        "Enable server-side encryption for the bucket.",
-        "Verify encryption settings for new objects by default.",
-        "Review key management strategy (provider-managed or customer-managed keys)."
-      ],
-      "responsibility": "CUSTOMER",
-      "rationale": "Encryption reduces the impact of unauthorized access and helps meet compliance requirements."
-    },
-    {
-      "rule_id": "OCI.SEC.DB.ENCRYPTION",
-      "resource_id": "adb_finance",
-      "title": "Enable database encryption",
-      "steps": [
-        "Enable encryption at rest for the database.",
-        "Ensure backups and replicas are encrypted.",
-        "Restrict access via network controls and IAM.",
-        "Enable auditing/logging for database access."
-      ],
-      "responsibility": "CUSTOMER",
-      "rationale": "Database encryption protects sensitive records against unauthorized access or snapshot exposure."
-    },
-    {
-      "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
-      "resource_id": "nsg_web",
-      "title": "Review configuration and apply best practices",
-      "steps": [
-        "Review the resource configuration and apply cloud security best practices."
-      ],
-      "responsibility": "CUSTOMER",
-      "rationale": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk."
-    }
-  ]
+  "findings": [],
+  "recommendations": []
 }

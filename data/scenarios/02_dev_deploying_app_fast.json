@@ -1,0 +1,16 @@
+{
+  "account": { "provider": "OCI", "tenancy_ocid": "ocid1.tenancy.oc1..devfast" },
+  "resources": [
+    { "id": "bucket_uploads", "type": "object_storage_bucket", "name": "app-uploads", "compartment": "comp_app", "public": false, "encrypted": false, "logging_enabled": true },
+    { "id": "adb_app", "type": "autonomous_database", "name": "app-adb", "compartment": "comp_app", "encrypted": false, "public_endpoint": true },
+    { "id": "nsg_app", "type": "network_security_group", "name": "app-nsg", "ingress_rules": [
+      { "protocol": "tcp", "port": 22, "source": "0.0.0.0/0" },
+      { "protocol": "tcp", "port": 443, "source": "0.0.0.0/0" }
+    ]},
+    { "id": "user_dev", "type": "user", "name": "dev", "role": "admin" }
+  ],
+  "relations": [
+    { "from": "user_dev", "to": "bucket_uploads", "relation": "created" },
+    { "from": "user_dev", "to": "adb_app", "relation": "created" }
+  ]
+}

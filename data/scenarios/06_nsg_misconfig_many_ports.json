@@ -1,0 +1,16 @@
+{
+  "account": { "provider": "OCI", "tenancy_ocid": "ocid1.tenancy.oc1..nsgwide" },
+  "resources": [
+    { "id": "nsg_wide", "type": "network_security_group", "name": "wide-open-nsg", "ingress_rules": [
+      { "protocol": "tcp", "port": 22, "source": "0.0.0.0/0" },
+      { "protocol": "tcp", "port": 3306, "source": "0.0.0.0/0" },
+      { "protocol": "tcp", "port": 5432, "source": "0.0.0.0/0" }
+    ]},
+    { "id": "adb_public", "type": "autonomous_database", "name": "public-adb", "compartment": "comp_data", "encrypted": false, "public_endpoint": true },
+    { "id": "user_admin", "type": "user", "name": "admin", "role": "admin" }
+  ],
+  "relations": [
+    { "from": "user_admin", "to": "adb_public", "relation": "created" },
+    { "from": "nsg_wide", "to": "adb_public", "relation": "exposes" }
+  ]
+}

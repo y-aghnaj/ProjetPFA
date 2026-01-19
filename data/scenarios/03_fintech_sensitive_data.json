@@ -1,0 +1,15 @@
+{
+  "account": { "provider": "OCI", "tenancy_ocid": "ocid1.tenancy.oc1..fintech" },
+  "resources": [
+    { "id": "bucket_statements", "type": "object_storage_bucket", "name": "bank-statements", "compartment": "comp_fin", "public": false, "encrypted": false, "logging_enabled": false },
+    { "id": "adb_core", "type": "autonomous_database", "name": "core-banking", "compartment": "comp_fin", "encrypted": false, "public_endpoint": false },
+    { "id": "nsg_admin", "type": "network_security_group", "name": "admin-nsg", "ingress_rules": [
+      { "protocol": "tcp", "port": 22, "source": "0.0.0.0/0" }
+    ]},
+    { "id": "user_ops", "type": "user", "name": "ops", "role": "admin" }
+  ],
+  "relations": [
+    { "from": "user_ops", "to": "adb_core", "relation": "manages" },
+    { "from": "user_ops", "to": "bucket_statements", "relation": "manages" }
+  ]
+}

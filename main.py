@@ -1,6 +1,8 @@
 import os
 from recommendations.generator import generate_recommendations
 import json
+import argparse
+from pathlib import Path
 from graph.resource_graph import ResourceGraph
 from scoring.scoring_engine import ScoringEngine
 from rules.engine import RuleEngine
@@ -16,8 +18,23 @@ def load_state(path: str):
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def scenario_path(name: str) -> str:
+    # allow passing full path OR scenario name
+    p = Path(name)
+    if p.exists():
+        return str(p)
+    # otherwise treat as scenario name
+    return str(Path("data") / "scenarios" / f"{name}.json")
+
 if __name__ == "__main__":
     state = load_state("data/oci_mock.json")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--scenario", default="data/oci_mock.json",
+                        help="Path to JSON file OR scenario name in data/scenarios (without .json)")
+    args = parser.parse_args()
+
+    state = load_state(scenario_path(args.scenario))
 
     rg = ResourceGraph()
     rg.load_from_state(state)
