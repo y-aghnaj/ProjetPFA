@@ -2,7 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 
-MODEL_NAME = "llama3.1"  # TODO: replace with your installed model from `ollama list`
+MODEL_NAME = "llama3.1"
 
 PROMPT_TEMPLATE = """You are a cloud governance auditor specializing in Oracle Cloud Infrastructure (OCI).
 
