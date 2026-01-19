@@ -1,5 +1,6 @@
 import os
 from recommendations.generator import generate_recommendations
+import json
 from graph.resource_graph import ResourceGraph
 from scoring.scoring_engine import ScoringEngine
 from rules.engine import RuleEngine
