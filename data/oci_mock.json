@@ -1,0 +1,51 @@
+{
+  "account": {
+    "provider": "OCI",
+    "tenancy_ocid": "ocid1.tenancy.oc1..exampleuniqueID"
+  },
+  "resources": [
+    {
+      "id": "bucket_payments",
+      "type": "object_storage_bucket",
+      "name": "payments-bucket",
+      "compartment": "comp_finance",
+      "public": true,
+      "encrypted": false,
+      "logging_enabled": false
+    },
+    {
+      "id": "adb_finance",
+      "type": "autonomous_database",
+      "name": "finance-adb",
+      "compartment": "comp_finance",
+      "encrypted": false,
+      "public_endpoint": true
+    },
+    {
+      "id": "vcn_main",
+      "type": "vcn",
+      "name": "main-vcn",
+      "cidr": "10.0.0.0/16"
+    },
+    {
+      "id": "nsg_web",
+      "type": "network_security_group",
+      "name": "web-nsg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 22, "source": "0.0.0.0/0" },
+        { "protocol": "tcp", "port": 80, "source": "0.0.0.0/0" }
+      ]
+    },
+    {
+      "id": "user_alice",
+      "type": "user",
+      "name": "alice",
+      "role": "admin"
+    }
+  ],
+  "relations": [
+    { "from": "user_alice", "to": "bucket_payments", "relation": "created" },
+    { "from": "user_alice", "to": "adb_finance", "relation": "created" },
+    { "from": "nsg_web", "to": "vcn_main", "relation": "attached_to" }
+  ]
+}
