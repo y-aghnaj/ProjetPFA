@@ -4,6 +4,7 @@ import json
 from graph.resource_graph import ResourceGraph
 from scoring.scoring_engine import ScoringEngine
 from rules.engine import RuleEngine
+from rules.perf_rules import rule_right_sizing_compute
 from rules.security_rules import (
     rule_public_object_storage_bucket,
     rule_bucket_encryption,
@@ -29,6 +30,7 @@ if __name__ == "__main__":
     engine.register(rule_bucket_encryption)
     engine.register(rule_db_encryption)
     engine.register(rule_ssh_open_to_world)
+    engine.register(rule_right_sizing_compute)
 
     findings = engine.run(rg.graph)
 
