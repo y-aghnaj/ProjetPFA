@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import List, Dict
 
-SEVERITY_PENALTY = {
-    "LOW": 3,
-    "MEDIUM": 7,
-    "HIGH": 15,
-    "CRITICAL": 25
+SEVERITY_RISK = {
+    "LOW": 0.05,
+    "MEDIUM": 0.12,
+    "HIGH": 0.25,
+    "CRITICAL": 0.40
 }
 
 @dataclass
@@ -14,7 +14,7 @@ class ScoreReport:
     performance_score: int
     global_score: int
     weights: Dict[str, float]
-    penalties: List[dict]
+    evidence: List[dict]  # explainability pack
 
     def to_dict(self):
         return {
@@ -22,11 +22,21 @@ class ScoreReport:
             "performance_score": self.performance_score,
             "global_score": self.global_score,
             "weights": self.weights,
-            "penalties": self.penalties
+            "evidence": self.evidence
         }
 
 def clamp(x: int, low: int = 0, high: int = 100) -> int:
     return max(low, min(high, x))
+
+def aggregate_risk(risks: List[float]) -> float:
+    """
+    Aggregation with saturation:
+    Risk = 1 - Π(1 - r_i)
+    """
+    prod = 1.0
+    for r in risks:
+        prod *= (1.0 - r)
+    return 1.0 - prod
 
 class ScoringEngine:
     def __init__(self, security_weight: float = 0.7, performance_weight: float = 0.3):
@@ -36,45 +46,50 @@ class ScoringEngine:
         self.performance_weight = performance_weight
 
     def compute(self, findings) -> ScoreReport:
-        # For now: classify by rule_id prefix
-        security_penalties = []
-        performance_penalties = []
+        security_findings = []
+        performance_findings = []
+
+        explain = []
 
         for f in findings:
-            penalty = SEVERITY_PENALTY.get(f.severity, 5)
+            r = SEVERITY_RISK.get(f.severity, 0.10)
+
             entry = {
                 "rule_id": f.rule_id,
                 "resource_id": f.resource_id,
                 "severity": f.severity,
-                "penalty": penalty,
+                "risk": r,
                 "message": f.message,
                 "responsibility": f.responsibility
             }
 
             if f.rule_id.startswith("OCI.SEC."):
-                security_penalties.append(entry)
+                security_findings.append(f)
+                entry["pillar"] = "security"
             elif f.rule_id.startswith("OCI.PERF."):
-                performance_penalties.append(entry)
+                performance_findings.append(f)
+                entry["pillar"] = "performance"
             else:
-                # default: count as security
-                security_penalties.append(entry)
+                security_findings.append(f)
+                entry["pillar"] = "security"
 
-        security_score = 100 - sum(p["penalty"] for p in security_penalties)
-        performance_score = 100 - sum(p["penalty"] for p in performance_penalties)
+            explain.append(entry)
 
-        security_score = clamp(security_score)
-        performance_score = clamp(performance_score)
+        security_risk = aggregate_risk([SEVERITY_RISK.get(f.severity, 0.10) for f in security_findings])
+        performance_risk = aggregate_risk([SEVERITY_RISK.get(f.severity, 0.10) for f in performance_findings])
 
-        global_score = int(
-            round(security_score * self.security_weight + performance_score * self.performance_weight)
-        )
+        security_score = clamp(int(round(100 * (1.0 - security_risk))))
+        performance_score = clamp(int(round(100 * (1.0 - performance_risk))))
 
-        penalties = security_penalties + performance_penalties
+        global_score = int(round(
+            security_score * self.security_weight +
+            performance_score * self.performance_weight
+        ))
 
         return ScoreReport(
             security_score=security_score,
             performance_score=performance_score,
             global_score=global_score,
             weights={"security": self.security_weight, "performance": self.performance_weight},
-            penalties=penalties
+            evidence=explain
         )

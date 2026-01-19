@@ -50,9 +50,9 @@ if __name__ == "__main__":
     print("Global score:", report.global_score, "/ 100")
     print("Weights:", report.weights)
 
-    print("\n=== Explainability Pack (Penalties) ===")
-    for p in report.penalties:
-        print(f"- {p['rule_id']} ({p['severity']}) => -{p['penalty']} on {p['resource_id']}")
+    print("\n=== Explainability Pack (Evidence) ===")
+    for e in report.evidence:
+        print(f"- {e['rule_id']} ({e['severity']}) risk={e['risk']} on {e['resource_id']}")
     recos = generate_recommendations(findings)
 
     print("\n=== Recommendations ===")
