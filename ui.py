@@ -82,6 +82,9 @@ else:
 
     st.divider()
 
+    st.subheader("Resource Graph")
+    st.graphviz_chart(result["graph_dot"])
+
     # Findings
     st.subheader("Findings")
     findings = result["findings"]

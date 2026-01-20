@@ -42,3 +42,19 @@ class ResourceGraph:
             "nodes": self.graph.number_of_nodes(),
             "edges": self.graph.number_of_edges()
         }
+
+    def to_dot(self) -> str:
+        """
+        Return a DOT representation for Graphviz rendering.
+        """
+        lines = ["digraph G {"]
+        # nodes
+        for node_id, data in self.graph.nodes(data=True):
+            label = f"{node_id}\\n{data.get('type', '')}"
+            lines.append(f'"{node_id}" [label="{label}"];')
+        # edges
+        for src, dst, edata in self.graph.edges(data=True):
+            rel = edata.get("relation", "")
+            lines.append(f'"{src}" -> "{dst}" [label="{rel}"];')
+        lines.append("}")
+        return "\n".join(lines)

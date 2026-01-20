@@ -62,7 +62,6 @@ def run_audit(
     """
     state = load_state(scenario_path(scenario))
     rg = build_resource_graph(state)
-
     engine = build_rule_engine()
     findings = engine.run(rg.graph)
 
@@ -98,6 +97,7 @@ def run_audit(
         "findings": [f.to_dict() for f in findings],
         "scores": score_report.to_dict(),
         "recommendations": recos,
+        "graph_dot": rg.to_dot(),
     }
 
     if export_json:
