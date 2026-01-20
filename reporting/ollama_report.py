@@ -19,6 +19,10 @@ Hard constraints:
   6) Recommendations (actionable, step-by-step)
   7) Next Steps and Re-scan Plan
 - Keep it clear and structured, with bullet points where useful.
+- In the SRM section, always mention both CSP and Customer responsibilities.
+  If findings are customer-side, state that CSP responsibilities remain baseline
+  and are not directly remediated by the customer.
+  Do NOT say CSP responsibilities are "not applicable".
 
 JSON INPUT:
 {json_data}
@@ -26,27 +30,36 @@ JSON INPUT:
 
 
 def _run_ollama(prompt: str, model_name: str) -> str:
+    """
+    Run a local Ollama model safely on Windows.
+    Forces UTF-8 decoding to avoid cp1252 Unicode errors.
+    """
     result = subprocess.run(
         ["ollama", "run", model_name],
         input=prompt,
         text=True,
-        capture_output=True
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if result.returncode != 0:
         raise RuntimeError(f"Ollama failed: {result.stderr}")
     return result.stdout.strip()
 
 
-def out_path_():
-    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
-    return "reports/report_llm " + timestamp + ".md"
+def _timestamped_report_path() -> Path:
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    return Path("reports") / f"report_llm_{timestamp}.md"
 
 
 def generate_llm_report(
-        report_json_path: str = "reports/report.json",
-        out_md_path: str = out_path_(),
-        model_name: str = "llama3.1"
+    report_json_path: str = "reports/report.json",
+    model_name: str = "llama3.1",
 ) -> str:
+    """
+    Generate a timestamped Markdown audit report from the JSON report.
+    The filename ALWAYS includes a timestamp.
+    """
     report_path = Path(report_json_path)
     if not report_path.exists():
         raise FileNotFoundError(f"{report_json_path} not found. Run main.py first.")
@@ -56,8 +69,10 @@ def generate_llm_report(
 
     output = _run_ollama(prompt, model_name)
 
-    out_path = Path(out_md_path)
+    out_path = _timestamped_report_path()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(output, encoding="utf-8")
+
     return str(out_path)
 
 

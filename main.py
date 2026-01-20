@@ -103,7 +103,6 @@ if __name__ == "__main__":
         try:
             out_path = generate_llm_report(
                 report_json_path="reports/report.json",
-                out_md_path="reports/report_llm.md",
                 model_name=args.llm_model
             )
             print("LLM report generated:", out_path)
