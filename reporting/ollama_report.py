@@ -75,6 +75,16 @@ def generate_llm_report(
 
     return str(out_path)
 
+def generate_llm_report_from_dict(
+    report_data: dict,
+    model_name: str = "llama3.1",
+) -> str:
+    """
+    Generate a timestamped Markdown audit report directly from an in-memory dict.
+    Returns the markdown text (not a file path).
+    """
+    prompt = PROMPT_TEMPLATE.format(json_data=json.dumps(report_data, indent=2))
+    return _run_ollama(prompt, model_name)
 
 if __name__ == "__main__":
     out = generate_llm_report()

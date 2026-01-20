@@ -13,7 +13,7 @@ from rules.security_rules import (
 )
 from scoring.scoring_engine import ScoringEngine
 from recommendations.generator import generate_recommendations
-
+from recommendations.llm_recommender import generate_llm_recommendations
 
 def load_state(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
@@ -49,7 +49,10 @@ def run_audit(
     performance_weight: float = 0.3,
     export_json: bool = True,
     report_json_path: str = "reports/report.json",
+    use_llm_recos: bool = False,
+    llm_model: str = "llama3.1",
 ) -> Dict[str, Any]:
+
     """
     Runs the full governance audit pipeline and returns a structured dict:
     - summary
@@ -66,7 +69,27 @@ def run_audit(
     scorer = ScoringEngine(security_weight=security_weight, performance_weight=performance_weight)
     score_report = scorer.compute(findings)
 
-    recos = generate_recommendations(findings)
+    static_recos = generate_recommendations(findings)
+    recos = [r.to_dict() for r in static_recos]
+
+    if use_llm_recos and findings:
+        try:
+            llm_recos = generate_llm_recommendations(
+                audit_result={
+                    "provider": state.get("account", {}).get("provider", "OCI"),
+                    "scenario": scenario,
+                    "summary": rg.summary(),
+                    "findings": [f.to_dict() for f in findings],
+                    "scores": score_report.to_dict(),
+                },
+                model_name=llm_model,
+            )
+            # if LLM returns valid recos for at least 1 finding, use them; else keep static
+            if llm_recos:
+                recos = llm_recos
+        except Exception:
+            # keep static fallback silently or log if you want
+            pass
 
     result = {
         "provider": state.get("account", {}).get("provider", "OCI"),
@@ -74,7 +97,7 @@ def run_audit(
         "summary": rg.summary(),
         "findings": [f.to_dict() for f in findings],
         "scores": score_report.to_dict(),
-        "recommendations": [r.to_dict() for r in recos],
+        "recommendations": recos,
     }
 
     if export_json:
