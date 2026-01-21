@@ -1,117 +1,21 @@
 {
   "provider": "OCI",
-  "scenario": "03_fintech_sensitive_data",
+  "scenario": "04_intern_best_practices_near_compliant",
   "summary": {
     "nodes": 4,
     "edges": 2
   },
-  "findings": [
-    {
-      "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
-      "resource_id": "bucket_statements",
-      "severity": "MEDIUM",
-      "responsibility": "CUSTOMER",
-      "message": "Object Storage bucket encryption is disabled.",
-      "evidence": {
-        "encrypted": false,
-        "name": "bank-statements"
-      }
-    },
-    {
-      "rule_id": "OCI.SEC.DB.ENCRYPTION",
-      "resource_id": "adb_core",
-      "severity": "HIGH",
-      "responsibility": "CUSTOMER",
-      "message": "Database encryption is disabled. This increases data exposure risk.",
-      "evidence": {
-        "encrypted": false,
-        "name": "core-banking"
-      }
-    },
-    {
-      "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
-      "resource_id": "nsg_admin",
-      "severity": "HIGH",
-      "responsibility": "CUSTOMER",
-      "message": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk.",
-      "evidence": {
-        "protocol": "tcp",
-        "port": 22,
-        "source": "0.0.0.0/0",
-        "nsg": "admin-nsg"
-      }
-    }
-  ],
+  "findings": [],
   "scores": {
-    "security_score": 63,
+    "security_score": 100,
     "performance_score": 100,
-    "global_score": 74,
+    "global_score": 100,
     "weights": {
-      "security": 0.7,
-      "performance": 0.30000000000000004
+      "security": 0.5,
+      "performance": 0.5
     },
-    "penalties": [
-      {
-        "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
-        "resource_id": "bucket_statements",
-        "severity": "MEDIUM",
-        "penalty": 7,
-        "message": "Object Storage bucket encryption is disabled.",
-        "responsibility": "CUSTOMER"
-      },
-      {
-        "rule_id": "OCI.SEC.DB.ENCRYPTION",
-        "resource_id": "adb_core",
-        "severity": "HIGH",
-        "penalty": 15,
-        "message": "Database encryption is disabled. This increases data exposure risk.",
-        "responsibility": "CUSTOMER"
-      },
-      {
-        "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
-        "resource_id": "nsg_admin",
-        "severity": "HIGH",
-        "penalty": 15,
-        "message": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk.",
-        "responsibility": "CUSTOMER"
-      }
-    ]
+    "penalties": []
   },
-  "recommendations": [
-    {
-      "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
-      "resource_id": "bucket_statements",
-      "title": "Enable encryption at rest for Object Storage bucket",
-      "steps": [
-        "Enable server-side encryption for the bucket.",
-        "Verify encryption settings for new objects by default.",
-        "Review key management strategy (provider-managed or customer-managed keys)."
-      ],
-      "responsibility": "CUSTOMER",
-      "rationale": "Encryption reduces the impact of unauthorized access and helps meet compliance requirements."
-    },
-    {
-      "rule_id": "OCI.SEC.DB.ENCRYPTION",
-      "resource_id": "adb_core",
-      "title": "Enable database encryption",
-      "steps": [
-        "Enable encryption at rest for the database.",
-        "Ensure backups and replicas are encrypted.",
-        "Restrict access via network controls and IAM.",
-        "Enable auditing/logging for database access."
-      ],
-      "responsibility": "CUSTOMER",
-      "rationale": "Database encryption protects sensitive records against unauthorized access or snapshot exposure."
-    },
-    {
-      "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
-      "resource_id": "nsg_admin",
-      "title": "Review configuration and apply best practices",
-      "steps": [
-        "Review the resource configuration and apply cloud security best practices."
-      ],
-      "responsibility": "CUSTOMER",
-      "rationale": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk."
-    }
-  ]
+  "recommendations": [],
+  "graph_dot": "digraph G {\n\"bucket_private\" [label=\"bucket_private\\nobject_storage_bucket\"];\n\"adb_secure\" [label=\"adb_secure\\nautonomous_database\"];\n\"nsg_sec\" [label=\"nsg_sec\\nnetwork_security_group\"];\n\"user_sec\" [label=\"user_sec\\nuser\"];\n\"user_sec\" -> \"bucket_private\" [label=\"created\"];\n\"user_sec\" -> \"adb_secure\" [label=\"created\"];\n}"
 }
