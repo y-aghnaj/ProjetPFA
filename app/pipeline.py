@@ -8,9 +8,18 @@ from rules.engine import RuleEngine
 from rules.security_rules import (
     rule_public_object_storage_bucket,
     rule_bucket_encryption,
+    rule_bucket_logging_disabled,
+    rule_bucket_versioning_disabled,
     rule_db_encryption,
+    rule_db_public_endpoint,
+    rule_db_backup_disabled,
     rule_ssh_open_to_world,
+    rule_rdp_open_to_world,
+    rule_bucket_public_no_encrypt_composite,
+    rule_db_public_and_no_encrypt,
+    graph_rule_public_ssh_path_to_database,
 )
+from rules.perf_rules import rule_right_sizing_compute
 from scoring.scoring_engine import ScoringEngine
 from recommendations.generator import generate_recommendations
 from recommendations.llm_recommender import generate_llm_recommendations
@@ -35,11 +44,30 @@ def build_resource_graph(state: dict) -> ResourceGraph:
 
 def build_rule_engine() -> RuleEngine:
     engine = RuleEngine()
-    engine.register(rule_public_object_storage_bucket)
-    engine.register(rule_bucket_encryption)
-    engine.register(rule_db_encryption)
-    engine.register(rule_ssh_open_to_world)
-    # add perf rules later (optional)
+
+    # --- composite first (so they can cover atomics later) ---
+    engine.register(rule_bucket_public_no_encrypt_composite, kind="node")
+    engine.register(rule_db_public_and_no_encrypt, kind="node")
+
+    # --- atomics ---
+    engine.register(rule_public_object_storage_bucket, kind="node")
+    engine.register(rule_bucket_encryption, kind="node")
+    engine.register(rule_bucket_logging_disabled, kind="node")
+    engine.register(rule_bucket_versioning_disabled, kind="node")
+
+    engine.register(rule_db_encryption, kind="node")
+    engine.register(rule_db_public_endpoint, kind="node")
+    engine.register(rule_db_backup_disabled, kind="node")
+
+    engine.register(rule_ssh_open_to_world, kind="node")
+    engine.register(rule_rdp_open_to_world, kind="node")
+
+    # --- graph-based ---
+    engine.register(graph_rule_public_ssh_path_to_database, kind="graph")
+
+    # --- perf (optional) ---
+    engine.register(rule_right_sizing_compute, kind="node")
+
     return engine
 
 
