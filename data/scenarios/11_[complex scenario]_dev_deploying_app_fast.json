@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "name": "Dev deploy fast - basic misconfigs",
+    "provider": "OCI",
+    "tags": ["complex scenario"],
+    "environment": "dev",
+    "domain": "software"
+  },
+  "resources": [
+    {
+      "id": "nsg_dev",
+      "type": "network_security_group",
+      "name": "dev-nsg",
+      "tags": {"environment": "dev"},
+      "ingress_rules": [
+        {"protocol": "tcp", "port": 22, "source": "0.0.0.0/0"}
+      ]
+    },
+    {
+      "id": "adb_dev",
+      "type": "autonomous_database",
+      "name": "dev-adb",
+      "tags": {"environment": "dev"},
+      "encrypted": false,
+      "public_endpoint": false,
+      "backups_enabled": true
+    },
+    {
+      "id": "bucket_uploads",
+      "type": "object_storage_bucket",
+      "name": "app-uploads",
+      "tags": {"environment": "dev"},
+      "public": false,
+      "encrypted": false,
+      "logging_enabled": false,
+      "versioning": false
+    }
+  ],
+  "relations": []
+}

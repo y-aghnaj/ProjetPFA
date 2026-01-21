@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "name": "Mostly compliant environment (baseline comparison)",
+    "provider": "OCI",
+    "tags": ["complex scenario"],
+    "environment": "prod",
+    "domain": "baseline"
+  },
+  "resources": [
+    {
+      "id": "bucket_private",
+      "type": "object_storage_bucket",
+      "name": "private-data",
+      "tags": {"environment": "prod", "data_classification": "confidential"},
+      "public": false,
+      "encrypted": true,
+      "logging_enabled": true,
+      "versioning": true
+    },
+    {
+      "id": "adb_ok",
+      "type": "autonomous_database",
+      "name": "secure-adb",
+      "tags": {"environment": "prod", "data_classification": "confidential"},
+      "encrypted": true,
+      "public_endpoint": false,
+      "backups_enabled": true
+    },
+    {
+      "id": "nsg_ok",
+      "type": "network_security_group",
+      "name": "secure-nsg",
+      "tags": {"environment": "prod"},
+      "ingress_rules": [
+        {"protocol": "tcp", "port": 443, "source": "0.0.0.0/0"}
+      ]
+    }
+  ],
+  "relations": []
+}

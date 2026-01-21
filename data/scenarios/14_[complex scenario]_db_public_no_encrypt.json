@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "name": "DB public endpoint + encryption disabled",
+    "provider": "OCI",
+    "tags": ["complex scenario"],
+    "environment": "prod",
+    "domain": "data"
+  },
+  "resources": [
+    {
+      "id": "adb_public",
+      "type": "autonomous_database",
+      "name": "public-adb",
+      "tags": {"environment": "prod", "data_classification": "confidential"},
+      "encrypted": false,
+      "public_endpoint": true,
+      "backups_enabled": false
+    }
+  ],
+  "relations": []
+}

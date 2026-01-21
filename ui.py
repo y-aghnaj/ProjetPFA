@@ -93,7 +93,7 @@ else:
     else:
         severities = sorted(set(f["severity"] for f in findings))
         sel = st.multiselect("Filter by severity", severities, default=severities)
-        filtered = [f for f in findings if f["severity"] in sel]
+        filtered = [f for f in findings if f["severity"] in sel] + [f for f in findings if not f.get("suppressed", False)]
         st.dataframe(filtered, use_container_width=True)
 
     st.divider()

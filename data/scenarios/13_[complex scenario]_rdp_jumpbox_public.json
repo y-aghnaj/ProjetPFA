@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "name": "Windows jumpbox - RDP exposed",
+    "provider": "OCI",
+    "tags": ["complex scenario"],
+    "environment": "prod",
+    "domain": "it-ops"
+  },
+  "resources": [
+    {
+      "id": "nsg_jump",
+      "type": "network_security_group",
+      "name": "jump-nsg",
+      "tags": {"environment": "prod"},
+      "ingress_rules": [
+        {"protocol": "tcp", "port": 3389, "source": "0.0.0.0/0"}
+      ]
+    }
+  ],
+  "relations": []
+}

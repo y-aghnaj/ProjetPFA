@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "name": "E-marketing - public assets bucket with weak governance",
+    "provider": "OCI",
+    "tags": ["complex scenario"],
+    "environment": "prod",
+    "domain": "marketing"
+  },
+  "resources": [
+    {
+      "id": "bucket_assets",
+      "type": "object_storage_bucket",
+      "name": "campaign-assets",
+      "tags": {"environment": "prod", "data_classification": "confidential"},
+      "public": true,
+      "encrypted": false,
+      "logging_enabled": false,
+      "versioning": false
+    }
+  ],
+  "relations": []
+}

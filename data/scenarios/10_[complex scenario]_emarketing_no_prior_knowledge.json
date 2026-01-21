@@ -1,0 +1,63 @@
+{
+  "metadata": {
+    "name": "Fintech prod - public SSH path to DB",
+    "provider": "OCI",
+    "tags": ["complex scenario"],
+    "environment": "prod",
+    "domain": "fintech"
+  },
+  "resources": [
+    {
+      "id": "nsg_edge",
+      "type": "network_security_group",
+      "name": "edge-nsg",
+      "tags": {"environment": "prod"},
+      "ingress_rules": [
+        {"protocol": "tcp", "port": 22, "source": "0.0.0.0/0"},
+        {"protocol": "tcp", "port": 443, "source": "0.0.0.0/0"}
+      ]
+    },
+    {
+      "id": "compute_api",
+      "type": "compute_instance",
+      "name": "api-prod-01",
+      "tags": {"environment": "prod"},
+      "public_ip": true,
+      "avg_cpu_utilization": 3.0,
+      "ocpus": 4,
+      "memory_gb": 32,
+      "shape": "VM.Standard.E4.Flex"
+    },
+    {
+      "id": "subnet_app",
+      "type": "subnet",
+      "name": "subnet-app",
+      "tags": {"environment": "prod"}
+    },
+    {
+      "id": "adb_payments",
+      "type": "autonomous_database",
+      "name": "payments-adb",
+      "tags": {"environment": "prod", "data_classification": "confidential"},
+      "encrypted": false,
+      "public_endpoint": true,
+      "backups_enabled": false
+    },
+    {
+      "id": "bucket_logs",
+      "type": "object_storage_bucket",
+      "name": "audit-logs",
+      "tags": {"environment": "prod", "data_classification": "confidential"},
+      "public": true,
+      "encrypted": false,
+      "logging_enabled": false,
+      "versioning": false,
+      "compartment": "comp_finance"
+    }
+  ],
+  "relations": [
+    {"from": "nsg_edge", "to": "compute_api", "relation": "protects"},
+    {"from": "compute_api", "to": "subnet_app", "relation": "in_subnet"},
+    {"from": "subnet_app", "to": "adb_payments", "relation": "connects_to"}
+  ]
+}
