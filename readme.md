@@ -1,6 +1,15 @@
-# Cloud Governance Audit Prototype (OCI)
+# Cloud Governance Audit Framework (applied to OCI)
 
-This project is a functional prototype of an AI-assisted Cloud Governance Audit system applied to Oracle Cloud Infrastructure (OCI). Its purpose is to demonstrate how cloud governance concepts such as security, performance, explainability, and the Shared Responsibility Model (SRM) can be integrated into a single, coherent, and auditable architecture. The prototype is intentionally explainable and deterministic: all analysis is rule-based and traceable, while artificial intelligence is used only at the final stage to generate a human-readable audit report.
+This project is a conceptual framework for AI-assisted cloud governance auditing.
+It is applied to Oracle Cloud Infrastructure (OCI) as a case study, and designed to be extended to other cloud providers via a provider-adapter layer.
+
+Core ideas:
+- Cloud resource graph modeling (resources + relationships)
+- Policy/rule-based controls (security, operations, cost, reliability, performance)
+- Risk-based scoring with explainability
+- Standards traceability (Well-Architected, CIS, ISO) — extendable
+- Reporting (local LLM via Ollama) + visual interface (Streamlit)
+
 
 The system follows a clear and structured pipeline. A mock OCI environment is first described as a JSON state. This state is then transformed into a resource graph, where cloud resources such as Object Storage buckets, databases, network security groups, compute instances, and users are represented as nodes, and their relationships are represented as edges. On top of this graph, a rule engine evaluates governance conditions and produces findings. These findings are then aggregated using a risk-based scoring model, followed by the generation of actionable recommendations and, finally, an automatically generated audit report using a local language model.
 
