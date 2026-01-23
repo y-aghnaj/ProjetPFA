@@ -1,3 +1,4 @@
+# rules/security_rules.py
 from __future__ import annotations
 from rules.engine import Finding
 
@@ -35,6 +36,7 @@ def rule_public_object_storage_bucket(node_id: str, r: dict):
             risk=_risk_for(sev),
             impact=["data_exposure"],
             context={"tags": _tags(r), "env": "prod" if _env_is_prod(r) else "non-prod"},
+            pillars=["SECURITY"],
         )
     return None
 
@@ -51,6 +53,7 @@ def rule_bucket_encryption(node_id: str, r: dict):
             risk=_risk_for(sev),
             impact=["data_exposure"],
             context={"tags": _tags(r)},
+            pillars=["SECURITY"],
         )
     return None
 
@@ -67,6 +70,7 @@ def rule_bucket_logging_disabled(node_id: str, r: dict):
             risk=_risk_for(sev),
             impact=["detection_gap"],
             context={"tags": _tags(r)},
+            pillars=["OPERATIONAL_EXCELLENCE"],
         )
     return None
 
@@ -83,6 +87,7 @@ def rule_bucket_versioning_disabled(node_id: str, r: dict):
             risk=_risk_for(sev),
             impact=["availability", "recovery_gap"],
             context={"tags": _tags(r)},
+            pillars=["RELIABILITY"],
         )
     return None
 
@@ -99,6 +104,7 @@ def rule_db_encryption(node_id: str, r: dict):
             risk=_risk_for(sev),
             impact=["data_exposure"],
             context={"tags": _tags(r)},
+            pillars=["SECURITY"],
         )
     return None
 
@@ -115,6 +121,7 @@ def rule_db_public_endpoint(node_id: str, r: dict):
             risk=_risk_for(sev),
             impact=["initial_access", "data_exposure"],
             context={"tags": _tags(r)},
+            pillars=["SECURITY"],
         )
     return None
 
@@ -131,6 +138,7 @@ def rule_db_backup_disabled(node_id: str, r: dict):
             risk=_risk_for(sev),
             impact=["availability", "recovery_gap"],
             context={"tags": _tags(r)},
+            pillars=["RELIABILITY"],
         )
     return None
 
@@ -160,6 +168,7 @@ def rule_ssh_open_to_world(node_id: str, r: dict):
                 risk=_risk_for(sev),
                 impact=["initial_access"],
                 context={"tags": _tags(r)},
+                pillars=["SECURITY"],
             )
     return None
 
@@ -179,6 +188,7 @@ def rule_rdp_open_to_world(node_id: str, r: dict):
                 risk=_risk_for(sev),
                 impact=["initial_access"],
                 context={"tags": _tags(r)},
+                pillars=["SECURITY"],
             )
     return None
 
@@ -197,8 +207,8 @@ def rule_bucket_public_no_encrypt_composite(node_id: str, r: dict):
             evidence={"public": True, "encrypted": False, "name": r.get("name")},
             risk=_risk_for(sev),
             impact=["data_exposure"],
-            # covers the two atomic rules
             context={"tags": _tags(r), "covers": ["OCI.SEC.BUCKET.PUBLIC", "OCI.SEC.BUCKET.ENCRYPTION"]},
+            pillars=["SECURITY"],
         )
     return None
 
@@ -217,18 +227,12 @@ def rule_db_public_and_no_encrypt(node_id: str, r: dict):
             risk=_risk_for(sev),
             impact=["initial_access", "data_exposure"],
             context={"tags": _tags(r), "covers": ["OCI.SEC.DB.PUBLIC_ENDPOINT", "OCI.SEC.DB.ENCRYPTION"]},
+            pillars=["SECURITY"],
         )
     return None
 
 # ---- Graph-based rule (multi-hop exposure path) ----
 def graph_rule_public_ssh_path_to_database(graph):
-    """
-    Detects if an NSG with public SSH can reach a database within a few hops.
-    This requires scenarios to define relations such as:
-      nsg -> compute (protects)
-      compute -> subnet (in_subnet)
-      subnet -> db (connects_to)
-    """
     findings = []
 
     # Collect DB nodes
@@ -251,7 +255,6 @@ def graph_rule_public_ssh_path_to_database(graph):
             continue
 
         # BFS limited depth
-        # We'll do a manual BFS to keep a depth limit
         frontier = [(nsg_id, [nsg_id], 0)]
         visited = set([nsg_id])
 
@@ -272,7 +275,7 @@ def graph_rule_public_ssh_path_to_database(graph):
                     sev = "CRITICAL" if (_env_is_prod(nxt_attrs) or _is_confidential(nxt_attrs)) else "HIGH"
                     findings.append(Finding(
                         rule_id="OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
-                        resource_id=nxt,  # we attach finding to DB as critical asset
+                        resource_id=nxt,
                         severity=sev,
                         responsibility="CUSTOMER",
                         message="A public SSH exposure provides a potential path to a database (multi-hop exposure).",
@@ -280,8 +283,8 @@ def graph_rule_public_ssh_path_to_database(graph):
                         risk=_risk_for(sev),
                         impact=["initial_access", "lateral_movement", "data_exposure"],
                         context={"path": new_path, "entrypoint": nsg_id, "db_tags": _tags(nxt_attrs)},
+                        pillars=["SECURITY"],
                     ))
-                    # we can break here or continue to find more dbs; keep going to collect all
                 else:
                     frontier.append((nxt, new_path, depth + 1))
 

@@ -43,6 +43,8 @@ if __name__ == "__main__":
     rg.load_from_state(state)
 
     print("=== Resource Graph Loaded ===")
+    print("Mode: Cloud Governance Audit Framework (applied to OCI)")
+    print("Scenario:", args.scenario)
     print("Summary:", rg.summary())
 
     engine = RuleEngine()

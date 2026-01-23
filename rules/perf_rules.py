@@ -1,3 +1,4 @@
+# rules/perf_rules.py
 from rules.engine import Finding
 
 def rule_right_sizing_compute(node_id: str, r: dict):
@@ -20,6 +21,7 @@ def rule_right_sizing_compute(node_id: str, r: dict):
                 "memory_gb": r.get("memory_gb"),
                 "shape": r.get("shape"),
                 "name": r.get("name")
-            }
+            },
+            pillars=["PERFORMANCE", "COST"],
         )
     return None

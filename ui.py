@@ -1,3 +1,4 @@
+# ui.py
 import json
 from pathlib import Path
 from datetime import datetime
@@ -16,10 +17,10 @@ def cached_llm_report(report_data: dict, model: str) -> str:
     return generate_llm_report_from_dict(report_data, model_name=model)
 
 
-st.set_page_config(page_title="OCI Cloud Governance Audit", layout="wide")
+st.set_page_config(page_title="Cloud Governance Audit Framework (OCI)", layout="wide")
 
-st.title("OCI Cloud Governance Audit Prototype")
-st.caption("Graph-based assessment + rule engine + risk-based scoring + explainable output")
+st.title("Cloud Governance Audit Framework (applied to OCI)")
+st.caption("Conceptual framework: graph modeling + controls (rules) + risk scoring + explainability + reporting + UI")
 
 # ---- Sidebar controls ----
 st.sidebar.header("Run settings")
@@ -38,7 +39,7 @@ scenario = st.sidebar.selectbox(
 
 security_w = st.sidebar.slider("Security weight", 0.0, 1.0, 0.7, 0.05)
 performance_w = 1.0 - security_w
-st.sidebar.write(f"Performance weight: **{performance_w:.2f}**")
+st.sidebar.write(f"Remaining weight (non-security pillars): **{performance_w:.2f}**")
 
 export_json = st.sidebar.checkbox("Export reports/report.json", value=True)
 
@@ -60,7 +61,7 @@ if run_btn:
         result = run_audit(
             scenario=scenario,
             security_weight=security_w,
-            performance_weight=performance_w,
+            performance_weight=performance_w,  # kept for compatibility, WAF engine uses security_weight mainly
             export_json=export_json,
             report_json_path="reports/report.json",
             use_llm_recos=use_llm_recos,
@@ -75,10 +76,21 @@ if result is None:
 else:
     # Scores
     scores = result["scores"]
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Security Score", scores["security_score"])
-    c2.metric("Performance Score", scores["performance_score"])
-    c3.metric("Global Score", scores["global_score"])
+    pillar_scores = scores.get("pillar_scores", {})
+
+    if pillar_scores:
+        c1, c2, c3, c4, c5 = st.columns(5)
+        c1.metric("Security", pillar_scores.get("SECURITY", 0))
+        c2.metric("Reliability", pillar_scores.get("RELIABILITY", 0))
+        c3.metric("Performance", pillar_scores.get("PERFORMANCE", 0))
+        c4.metric("Cost", pillar_scores.get("COST", 0))
+        c5.metric("Ops Excellence", pillar_scores.get("OPERATIONAL_EXCELLENCE", 0))
+        st.metric("Global Score", scores.get("global_score", 0))
+    else:
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Security Score", scores.get("security_score", 0))
+        c2.metric("Performance Score", scores.get("performance_score", 0))
+        c3.metric("Global Score", scores.get("global_score", 0))
 
     st.divider()
 
@@ -93,7 +105,11 @@ else:
     else:
         severities = sorted(set(f["severity"] for f in findings))
         sel = st.multiselect("Filter by severity", severities, default=severities)
-        filtered = [f for f in findings if f["severity"] in sel] + [f for f in findings if not f.get("suppressed", False)]
+
+        filtered = [f for f in findings if f["severity"] in sel]
+        if st.checkbox("Hide suppressed findings", value=True):
+            filtered = [f for f in filtered if not f.get("suppressed", False)]
+
         st.dataframe(filtered, use_container_width=True)
 
     st.divider()
@@ -111,6 +127,10 @@ else:
                 st.markdown("**Steps:**")
                 for step in r.get("steps", []):
                     st.markdown(f"- {step}")
+                if r.get("verification"):
+                    st.markdown("**Verification:**")
+                    for v in r.get("verification", []):
+                        st.markdown(f"- {v}")
 
     st.divider()
 

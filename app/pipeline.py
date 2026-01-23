@@ -1,7 +1,8 @@
+# app/pipeline.py
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from graph.resource_graph import ResourceGraph
 from rules.engine import RuleEngine
@@ -20,9 +21,10 @@ from rules.security_rules import (
     graph_rule_public_ssh_path_to_database,
 )
 from rules.perf_rules import rule_right_sizing_compute
-from scoring.scoring_engine import ScoringEngine
+from scoring.scoring_engine import WAFScoringEngine
 from recommendations.generator import generate_recommendations
 from recommendations.llm_recommender import generate_llm_recommendations
+
 
 def load_state(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
@@ -74,18 +76,17 @@ def build_rule_engine() -> RuleEngine:
 def run_audit(
     scenario: str,
     security_weight: float = 0.7,
-    performance_weight: float = 0.3,
+    performance_weight: float = 0.3,  # kept for UI compatibility
     export_json: bool = True,
     report_json_path: str = "reports/report.json",
     use_llm_recos: bool = False,
     llm_model: str = "llama3.1",
 ) -> Dict[str, Any]:
-
     """
     Runs the full governance audit pipeline and returns a structured dict:
     - summary
     - findings
-    - scores
+    - scores (WAF pillars + global + legacy fields for backward compat)
     - recommendations
     """
     state = load_state(scenario_path(scenario))
@@ -93,7 +94,16 @@ def run_audit(
     engine = build_rule_engine()
     findings = engine.run(rg.graph)
 
-    scorer = ScoringEngine(security_weight=security_weight, performance_weight=performance_weight)
+    # WAF weights: keep slider for Security, distribute remaining across other pillars
+    remaining = max(0.0, 1.0 - float(security_weight))
+    waf_weights = {
+        "SECURITY": float(security_weight),
+        "RELIABILITY": remaining * 0.30,
+        "PERFORMANCE": remaining * 0.20,
+        "COST": remaining * 0.20,
+        "OPERATIONAL_EXCELLENCE": remaining * 0.30,
+    }
+    scorer = WAFScoringEngine(weights=waf_weights)
     score_report = scorer.compute(findings)
 
     static_recos = generate_recommendations(findings)
@@ -111,11 +121,9 @@ def run_audit(
                 },
                 model_name=llm_model,
             )
-            # if LLM returns valid recos for at least 1 finding, use them; else keep static
             if llm_recos:
                 recos = llm_recos
         except Exception:
-            # keep static fallback silently or log if you want
             pass
 
     result = {

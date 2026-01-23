@@ -4,7 +4,8 @@ from pathlib import Path
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-PROMPT_TEMPLATE = """You are a cloud governance auditor specializing in Oracle Cloud Infrastructure (OCI).
+PROMPT_TEMPLATE = """You are a cloud governance auditor. This project is a conceptual audit framework applied to Oracle Cloud Infrastructure (OCI) as a case study.
+
 
 Write a professional assessment report based ONLY on the JSON input below.
 
@@ -147,6 +148,7 @@ def generate_llm_report(
     timeout_s: int = 480,  # 8 minutes
 ) -> str:
     """
+
     Generate a timestamped Markdown audit report from the JSON report.
     Filename ALWAYS includes a timestamp.
     """

@@ -1,7 +1,8 @@
+# rules/engine.py
 from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
-from typing import Callable, Any, Optional, List, Dict, Union, Tuple
+from typing import Callable, Any, Optional, List, Dict, Union
 import inspect
 
 
@@ -15,11 +16,15 @@ class Finding:
     message: str
     evidence: dict
 
-    # New fields (safe defaults)
+    # Explainability fields
     risk: float = 0.0                 # normalized 0..1
     confidence: float = 1.0           # 0..1
     impact: List[str] = field(default_factory=list)       # e.g. ["data_exposure", "initial_access"]
     context: Dict[str, Any] = field(default_factory=dict) # path, tags, compartment, etc.
+
+    # WAF mapping + standards traceability (new)
+    pillars: List[str] = field(default_factory=list)  # ["SECURITY","RELIABILITY","PERFORMANCE","COST","OPERATIONAL_EXCELLENCE"]
+    references: List[Dict[str, str]] = field(default_factory=list)  # [{"standard":"WAF","id":"SEC-01"}]
 
     # Dedup/suppression helpers
     suppressed: bool = False
