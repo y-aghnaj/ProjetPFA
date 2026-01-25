@@ -6,7 +6,7 @@ from typing import Callable, Any, Optional, List, Dict, Union
 import inspect
 
 
-# --- Finding enriched for audit-grade explainability ---
+# --- Finding enriched for audit-grade explainability + WAF traceability ---
 @dataclass
 class Finding:
     rule_id: str
@@ -22,15 +22,27 @@ class Finding:
     impact: List[str] = field(default_factory=list)       # e.g. ["data_exposure", "initial_access"]
     context: Dict[str, Any] = field(default_factory=dict) # path, tags, compartment, etc.
 
-    # WAF mapping + standards traceability (new)
-    pillars: List[str] = field(default_factory=list)  # ["SECURITY","RELIABILITY","PERFORMANCE","COST","OPERATIONAL_EXCELLENCE"]
-    references: List[Dict[str, str]] = field(default_factory=list)  # [{"standard":"WAF","id":"SEC-01"}]
+    # --- Well-Architected Framework mapping (explicit) ---
+    # primary pillar used by scoring (simple + aligned with prof remarks)
+    primary_pillar: str = "SECURITY"  # SECURITY | RELIABILITY | PERFORMANCE | COST | OPERATIONAL_EXCELLENCE
+    # optional multi-pillar tagging (future-proof)
+    pillars: List[str] = field(default_factory=list)
+
+    # --- Standards traceability ---
+    # each ref should look like:
+    # {"framework":"WAF|CIS|ISO27001|OCI", "control_id":"SEC-01", "title":"...", "url":"..."}
+    references: List[Dict[str, str]] = field(default_factory=list)
 
     # Dedup/suppression helpers
     suppressed: bool = False
     covered_by: List[str] = field(default_factory=list)   # list of composite rule_ids that cover it
 
     def to_dict(self):
+        # Ensure pillars always contains primary_pillar at minimum (nice invariant for UI/export)
+        if not self.pillars:
+            self.pillars = [self.primary_pillar]
+        elif self.primary_pillar not in self.pillars:
+            self.pillars.insert(0, self.primary_pillar)
         return asdict(self)
 
 
@@ -78,7 +90,8 @@ class RuleEngine:
         self._apply_composite_coverage(findings)
 
         # 4) Optional: sort by severity then risk
-        findings.sort(key=lambda f: (self._severity_rank(f.severity), -float(f.risk)), reverse=False)
+        # NOTE: we sort LOW->CRITICAL by rank, and higher risk first inside same severity
+        findings.sort(key=lambda f: (self._severity_rank(f.severity), -float(getattr(f, "risk", 0.0))), reverse=False)
 
         return findings
 
