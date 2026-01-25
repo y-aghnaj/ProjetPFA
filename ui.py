@@ -11,35 +11,24 @@ from reporting.ollama_report import generate_llm_report_from_dict
 
 @st.cache_data(show_spinner=False)
 def cached_llm_report(report_data: dict, model: str) -> str:
-    """
-    Cache LLM generation so it won't re-generate if the same report_data + model are used again.
-    """
     return generate_llm_report_from_dict(report_data, model_name=model)
 
 
-st.set_page_config(page_title="Cloud Governance Audit Framework (OCI)", layout="wide")
+st.set_page_config(page_title="Cloud Governance Audit (OCI Case Study)", layout="wide")
 
-st.title("Cloud Governance Audit Framework (applied to OCI)")
-st.caption("Conceptual framework: graph modeling + controls (rules) + risk scoring + explainability + reporting + UI")
+st.title("Cloud Governance Audit Framework (OCI Case Study)")
+st.caption("Graph-based assessment + rule engine + WAF-aligned scoring + explainability + local LLM reporting")
 
 # ---- Sidebar controls ----
 st.sidebar.header("Run settings")
 
-# Scenario list (auto-discover)
 scenario_dir = Path("data/scenarios")
-scenario_names = []
-if scenario_dir.exists():
-    scenario_names = sorted([p.stem for p in scenario_dir.glob("*.json")])
-
+scenario_names = sorted([p.stem for p in scenario_dir.glob("*.json")]) if scenario_dir.exists() else []
 scenario = st.sidebar.selectbox(
     "Scenario",
     options=scenario_names if scenario_names else ["data/oci_mock.json"],
-    index=0
+    index=0,
 )
-
-security_w = st.sidebar.slider("Security weight", 0.0, 1.0, 0.7, 0.05)
-performance_w = 1.0 - security_w
-st.sidebar.write(f"Remaining weight (non-security pillars): **{performance_w:.2f}**")
 
 export_json = st.sidebar.checkbox("Export reports/report.json", value=True)
 
@@ -50,91 +39,144 @@ llm_model = st.sidebar.text_input("Ollama model", value="llama3.1")
 st.sidebar.subheader("Recommendations")
 use_llm_recos = st.sidebar.checkbox("Generate recommendations with LLM", value=False)
 
+st.sidebar.subheader("WAF weights (optional)")
+use_custom_waf = st.sidebar.checkbox("Customize WAF pillar weights", value=False)
+
+default_w = {
+    "SECURITY": 0.30,
+    "RELIABILITY": 0.20,
+    "PERFORMANCE": 0.15,
+    "COST": 0.15,
+    "OPERATIONAL_EXCELLENCE": 0.20,
+}
+
+waf_weights = None
+if use_custom_waf:
+    w_security = st.sidebar.slider("SECURITY", 0.0, 1.0, default_w["SECURITY"], 0.05)
+    w_reliability = st.sidebar.slider("RELIABILITY", 0.0, 1.0, default_w["RELIABILITY"], 0.05)
+    w_performance = st.sidebar.slider("PERFORMANCE", 0.0, 1.0, default_w["PERFORMANCE"], 0.05)
+    w_cost = st.sidebar.slider("COST", 0.0, 1.0, default_w["COST"], 0.05)
+    w_ops = st.sidebar.slider("OPERATIONAL_EXCELLENCE", 0.0, 1.0, default_w["OPERATIONAL_EXCELLENCE"], 0.05)
+    waf_weights = {
+        "SECURITY": w_security,
+        "RELIABILITY": w_reliability,
+        "PERFORMANCE": w_performance,
+        "COST": w_cost,
+        "OPERATIONAL_EXCELLENCE": w_ops,
+    }
+
 run_btn = st.sidebar.button("Run Audit", type="primary")
 
-# ---- Persist last audit result across Streamlit reruns ----
+# ---- Persist last audit result across reruns ----
 result = st.session_state.get("last_result")
 
-# ---- Run audit when requested ----
 if run_btn:
     with st.spinner("Running audit..."):
         result = run_audit(
             scenario=scenario,
-            security_weight=security_w,
-            performance_weight=performance_w,  # kept for compatibility, WAF engine uses security_weight mainly
             export_json=export_json,
             report_json_path="reports/report.json",
             use_llm_recos=use_llm_recos,
             llm_model=llm_model,
+            waf_weights=waf_weights,
         )
     st.session_state["last_result"] = result
     st.success("Audit complete.")
 
-# ---- Main area rendering ----
 if result is None:
     st.info("Select a scenario and click **Run Audit** from the sidebar.")
 else:
-    # Scores
     scores = result["scores"]
     pillar_scores = scores.get("pillar_scores", {})
 
-    if pillar_scores:
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Security", pillar_scores.get("SECURITY", 0))
-        c2.metric("Reliability", pillar_scores.get("RELIABILITY", 0))
-        c3.metric("Performance", pillar_scores.get("PERFORMANCE", 0))
-        c4.metric("Cost", pillar_scores.get("COST", 0))
-        c5.metric("Ops Excellence", pillar_scores.get("OPERATIONAL_EXCELLENCE", 0))
-        st.metric("Global Score", scores.get("global_score", 0))
-    else:
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Security Score", scores.get("security_score", 0))
-        c2.metric("Performance Score", scores.get("performance_score", 0))
-        c3.metric("Global Score", scores.get("global_score", 0))
+    # ---- Scores summary ----
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Global Score", scores.get("global_score"))
+    c2.metric("Security (compat)", scores.get("security_score"))
+    c3.metric("Performance (compat)", scores.get("performance_score"))
 
     st.divider()
 
-    st.subheader("Resource Graph")
-    st.graphviz_chart(result["graph_dot"])
+    st.subheader("Well-Architected Pillar Scores")
+    if pillar_scores:
+        cols = st.columns(5)
+        pillars = ["SECURITY", "RELIABILITY", "PERFORMANCE", "COST", "OPERATIONAL_EXCELLENCE"]
+        for i, p in enumerate(pillars):
+            cols[i].metric(p, pillar_scores.get(p, 0))
+    else:
+        st.info("No pillar_scores found (check scoring engine).")
 
-    # Findings
+    st.divider()
+
+    # ---- Graph ----
+    st.subheader("Resource Graph")
+    st.graphviz_chart(result.get("graph_dot", ""))
+
+    st.divider()
+
+    # ---- Findings ----
     st.subheader("Findings")
-    findings = result["findings"]
+    findings = result.get("findings", [])
+
     if not findings:
         st.info("No findings detected.")
     else:
-        severities = sorted(set(f["severity"] for f in findings))
+        show_suppressed = st.checkbox("Show suppressed findings (covered by composites)", value=False)
+
+        severities = sorted(set(f.get("severity") for f in findings if f.get("severity")))
         sel = st.multiselect("Filter by severity", severities, default=severities)
 
-        filtered = [f for f in findings if f["severity"] in sel]
-        if st.checkbox("Hide suppressed findings", value=True):
-            filtered = [f for f in filtered if not f.get("suppressed", False)]
+        filtered = []
+        for f in findings:
+            if f.get("severity") not in sel:
+                continue
+            if (not show_suppressed) and f.get("suppressed", False):
+                continue
+            filtered.append(f)
 
         st.dataframe(filtered, use_container_width=True)
 
+        with st.expander("Explainability / Traceability (per finding)"):
+            for f in filtered:
+                title = f"[{f.get('severity')}] {f.get('rule_id')} on {f.get('resource_id')}"
+                st.markdown(f"**{title}**")
+                st.write(f.get("message", ""))
+                st.write("Pillars:", f.get("pillars", []))
+                refs = f.get("references", [])
+                if refs:
+                    st.markdown("**References:**")
+                    for r in refs:
+                        st.markdown(f"- {r.get('standard','')} {r.get('id','')}: {r.get('name','')}")
+                st.markdown("---")
+
     st.divider()
 
-    # Recommendations
+    # ---- Recommendations ----
     st.subheader("Recommendations")
-    recos = result["recommendations"]
+    recos = result.get("recommendations", [])
     if not recos:
         st.info("No recommendations.")
     else:
         for r in recos:
             src = r.get("source", "STATIC")
-            with st.expander(f"{r['title']} — {r['resource_id']} ({r['responsibility']}) [{src}]"):
+            with st.expander(f"{r.get('title')} — {r.get('resource_id')} ({r.get('responsibility')}) [{src}]"):
                 st.write(r.get("rationale", ""))
                 st.markdown("**Steps:**")
                 for step in r.get("steps", []):
                     st.markdown(f"- {step}")
+
+                # optional fields for LLM recos
                 if r.get("verification"):
                     st.markdown("**Verification:**")
                     for v in r.get("verification", []):
                         st.markdown(f"- {v}")
+                if r.get("risk_if_ignored"):
+                    st.markdown("**Risk if ignored:**")
+                    st.write(r.get("risk_if_ignored"))
 
     st.divider()
 
-    # Exports
+    # ---- Export ----
     st.subheader("Exports")
     st.download_button(
         label="Download report.json",
@@ -145,19 +187,16 @@ else:
 
     st.divider()
 
-    # LLM report generation
+    # ---- LLM Report ----
     st.subheader("LLM Audit Report (Ollama)")
-
     if use_llm:
         gen_btn = st.button("Generate LLM Report", type="primary")
-
         if gen_btn:
             with st.spinner("Generating report with Ollama... this may take a few minutes."):
                 md_text = cached_llm_report(result, llm_model)
 
             st.success("LLM report generated.")
 
-            # Save timestamped file
             ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             out_path = Path("reports") / f"report_llm_{ts}.md"
             out_path.parent.mkdir(parents=True, exist_ok=True)
