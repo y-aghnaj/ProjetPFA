@@ -281,3 +281,75 @@ def rule_db_public_and_no_encrypt(node_id: str, r: dict):
             references=refs,
         )
     return None
+
+def graph_rule_public_ssh_path_to_database(graph):
+    """
+    Detects if an NSG with public SSH can reach a database within a few hops.
+
+    Requires scenarios to define relations such as:
+      nsg -> compute (protects)
+      compute -> subnet (in_subnet)
+      subnet -> db (connects_to)
+    """
+    findings = []
+
+    # Collect DB nodes
+    db_nodes = []
+    for nid, attrs in graph.nodes(data=True):
+        if attrs.get("type") == "autonomous_database":
+            db_nodes.append((nid, attrs))
+
+    # For each NSG with public SSH, search descendants up to depth 4 for DB
+    for nsg_id, nsg in graph.nodes(data=True):
+        if nsg.get("type") != "network_security_group":
+            continue
+
+        ssh_public = False
+        for rule in nsg.get("ingress_rules", []):
+            if rule.get("protocol") == "tcp" and rule.get("port") == 22 and rule.get("source") == "0.0.0.0/0":
+                ssh_public = True
+                break
+        if not ssh_public:
+            continue
+
+        # BFS limited depth
+        frontier = [(nsg_id, [nsg_id], 0)]
+        visited = {nsg_id}
+
+        while frontier:
+            cur, path, depth = frontier.pop(0)
+            if depth >= 4:
+                continue
+
+            for nxt in graph.successors(cur):
+                if nxt in visited:
+                    continue
+                visited.add(nxt)
+
+                nxt_attrs = graph.nodes[nxt]
+                new_path = path + [nxt]
+
+                if nxt_attrs.get("type") == "autonomous_database":
+                    sev = "CRITICAL" if (_env_is_prod(nxt_attrs) or _is_confidential(nxt_attrs)) else "HIGH"
+                    findings.append(
+                        Finding(
+                            rule_id="OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+                            resource_id=nxt,  # attach finding to DB (critical asset)
+                            severity=sev,
+                            responsibility="CUSTOMER",
+                            message="A public SSH exposure provides a potential path to a database (multi-hop exposure).",
+                            evidence={"entrypoint_nsg": nsg_id, "path": new_path},
+                            risk=_risk_for(sev),
+                            impact=["initial_access", "lateral_movement", "data_exposure"],
+                            context={"path": new_path, "entrypoint": nsg_id, "db_tags": _tags(nxt_attrs)},
+                            pillars=["SECURITY", "RELIABILITY"],
+                            references=[
+                                {"standard": "WAF", "id": "SEC-07", "name": "Minimize exposure paths / reduce attack surface"},
+                                {"standard": "CIS", "id": "Network-1", "name": "Restrict management ports and exposure"},
+                            ],
+                        )
+                    )
+                else:
+                    frontier.append((nxt, new_path, depth + 1))
+
+    return findings
