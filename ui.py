@@ -81,8 +81,6 @@ if run_btn:
     with st.spinner("Running audit..."):
         result = run_audit(
             scenario=scenario,
-            #security_weight=security_w,
-            #performance_weight=performance_w,
             export_json=export_json,
             report_json_path="reports/report.json",
             use_llm_recos=use_llm_recos,
