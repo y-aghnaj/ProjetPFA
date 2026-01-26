@@ -1,7 +1,7 @@
 # security_rules.py
 from __future__ import annotations
 from rules.engine import Finding
-from waf import rule_trace
+from governance.waf import rule_trace
 
 # ---- Helpers ----
 SEV_TO_RISK = {

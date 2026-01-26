@@ -30,6 +30,13 @@ scenario = st.sidebar.selectbox(
     index=0,
 )
 
+baseline = st.sidebar.selectbox(
+    "Baseline (optional)",
+    options=[""] + scenario_names,
+    index=0
+)
+baseline = baseline if baseline != "" else None
+
 export_json = st.sidebar.checkbox("Export reports/report.json", value=True)
 
 st.sidebar.subheader("Local LLM (Ollama)")
@@ -74,12 +81,15 @@ if run_btn:
     with st.spinner("Running audit..."):
         result = run_audit(
             scenario=scenario,
+            #security_weight=security_w,
+            #performance_weight=performance_w,
             export_json=export_json,
             report_json_path="reports/report.json",
             use_llm_recos=use_llm_recos,
             llm_model=llm_model,
-            waf_weights=waf_weights,
+            baseline_scenario=baseline,
         )
+
     st.session_state["last_result"] = result
     st.success("Audit complete.")
 
@@ -94,6 +104,22 @@ else:
     c1.metric("Global Score", scores.get("global_score"))
     c2.metric("Security (compat)", scores.get("security_score"))
     c3.metric("Performance (compat)", scores.get("performance_score"))
+
+    if "delta" in result:
+        st.subheader("Dynamic Evolution (Diff Scan)")
+        st.caption("Comparison between baseline snapshot and current snapshot.")
+
+        d = result["delta"]
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Resources added", len(d["resources"]["added"]))
+        c2.metric("Resources removed", len(d["resources"]["removed"]))
+        c3.metric("Findings added", len(d["findings"]["added"]))
+
+        with st.expander("Resources diff details"):
+            st.json(d["resources"])
+        with st.expander("Findings diff details"):
+            st.json(d["findings"])
 
     st.divider()
 

@@ -2,7 +2,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from graph.resource_graph import ResourceGraph
 from rules.engine import RuleEngine
@@ -24,6 +24,8 @@ from rules.perf_rules import rule_right_sizing_compute
 from scoring.scoring_engine import ScoringEngine
 from recommendations.generator import generate_recommendations
 from recommendations.llm_recommender import generate_llm_recommendations
+
+from app.diffing import diff_resources, diff_findings
 
 
 def load_state(path: str) -> dict:
@@ -47,70 +49,58 @@ def build_resource_graph(state: dict) -> ResourceGraph:
 def build_rule_engine() -> RuleEngine:
     engine = RuleEngine()
 
-    # --- composites first ---
+    # composite first
     engine.register(rule_bucket_public_no_encrypt_composite, kind="node")
     engine.register(rule_db_public_and_no_encrypt, kind="node")
 
-    # --- bucket ---
+    # atomics
     engine.register(rule_public_object_storage_bucket, kind="node")
     engine.register(rule_bucket_encryption, kind="node")
     engine.register(rule_bucket_logging_disabled, kind="node")
     engine.register(rule_bucket_versioning_disabled, kind="node")
 
-    # --- database ---
     engine.register(rule_db_encryption, kind="node")
     engine.register(rule_db_public_endpoint, kind="node")
     engine.register(rule_db_backup_disabled, kind="node")
 
-    # --- network ---
     engine.register(rule_ssh_open_to_world, kind="node")
     engine.register(rule_rdp_open_to_world, kind="node")
 
-    # --- graph-based exposure path ---
+    # graph rule
     engine.register(graph_rule_public_ssh_path_to_database, kind="graph")
 
-    # --- performance/cost (optional) ---
+    # perf
     engine.register(rule_right_sizing_compute, kind="node")
 
     return engine
 
 
-def run_audit(
-    scenario: str,
-    export_json: bool = True,
-    report_json_path: str = "reports/report.json",
-    use_llm_recos: bool = False,
-    llm_model: str = "llama3.1",
-    waf_weights: Dict[str, float] | None = None,
+def _run_single_audit(
+    state: dict,
+    scenario_label: str,
+    security_weight: float,
+    performance_weight: float,
+    use_llm_recos: bool,
+    llm_model: str,
 ) -> Dict[str, Any]:
-    """
-    Runs the full governance audit pipeline and returns a structured dict:
-    - provider, scenario, summary, findings, scores, recommendations, graph_dot
-    """
-
-    state = load_state(scenario_path(scenario))
     rg = build_resource_graph(state)
-
     engine = build_rule_engine()
-    findings = engine.run(rg.graph)
+    findings_objs = engine.run(rg.graph)
 
-    # WAF-aligned scoring (still backward compatible fields)
-    scorer = ScoringEngine(waf_weights=waf_weights)
-    score_report = scorer.compute(findings)
+    scorer = ScoringEngine()
+    score_report = scorer.compute(findings_objs)
 
-    # recommendations: static first
-    static_recos = generate_recommendations(findings)
+    static_recos = generate_recommendations(findings_objs)
     recos = [r.to_dict() for r in static_recos]
 
-    # optional: LLM recommendations
-    if use_llm_recos and findings:
+    if use_llm_recos and findings_objs:
         try:
             llm_recos = generate_llm_recommendations(
                 audit_result={
                     "provider": state.get("account", {}).get("provider", "OCI"),
-                    "scenario": scenario,
+                    "scenario": scenario_label,
                     "summary": rg.summary(),
-                    "findings": [f.to_dict() for f in findings],
+                    "findings": [f.to_dict() for f in findings_objs],
                     "scores": score_report.to_dict(),
                 },
                 model_name=llm_model,
@@ -118,18 +108,78 @@ def run_audit(
             if llm_recos:
                 recos = llm_recos
         except Exception:
-            # keep static fallback
             pass
 
-    result = {
+    return {
         "provider": state.get("account", {}).get("provider", "OCI"),
-        "scenario": scenario,
+        "scenario": scenario_label,
         "summary": rg.summary(),
-        "findings": [f.to_dict() for f in findings],
+        "findings": [f.to_dict() for f in findings_objs],
         "scores": score_report.to_dict(),
         "recommendations": recos,
         "graph_dot": rg.to_dot(),
     }
+
+
+def run_audit(
+    scenario: str,
+    security_weight: float = 0.7,
+    performance_weight: float = 0.3,
+    export_json: bool = True,
+    report_json_path: str = "reports/report.json",
+    use_llm_recos: bool = False,
+    llm_model: str = "llama3.1",
+    baseline_scenario: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    If baseline_scenario is provided, runs:
+      - baseline audit
+      - current audit
+      - computes deltas (resources + findings)
+    Otherwise runs a single audit.
+    """
+    current_state = load_state(scenario_path(scenario))
+    current = _run_single_audit(
+        state=current_state,
+        scenario_label=scenario,
+        security_weight=security_weight,
+        performance_weight=performance_weight,
+        use_llm_recos=use_llm_recos,
+        llm_model=llm_model,
+    )
+
+    result = current
+
+    if baseline_scenario:
+        baseline_state = load_state(scenario_path(baseline_scenario))
+        baseline = _run_single_audit(
+            state=baseline_state,
+            scenario_label=baseline_scenario,
+            security_weight=security_weight,
+            performance_weight=performance_weight,
+            use_llm_recos=False,  # keep baseline deterministic
+            llm_model=llm_model,
+        )
+
+        delta = {
+            "resources": diff_resources(baseline_state, current_state),
+            "findings": diff_findings(baseline["findings"], current["findings"]),
+            "scores": {
+                "baseline_global": baseline["scores"]["global_score"],
+                "current_global": current["scores"]["global_score"],
+                "delta_global": current["scores"]["global_score"] - baseline["scores"]["global_score"],
+            },
+        }
+
+        result = {
+            **current,
+            "baseline": {
+                "scenario": baseline_scenario,
+                "summary": baseline["summary"],
+                "scores": baseline["scores"],
+            },
+            "delta": delta,
+        }
 
     if export_json:
         os.makedirs(Path(report_json_path).parent, exist_ok=True)

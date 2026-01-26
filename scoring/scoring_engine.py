@@ -4,7 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Any, Optional
 
-from waf import DEFAULT_WAF_WEIGHTS, normalize_weights
+from governance.waf import DEFAULT_WAF_WEIGHTS, normalize_weights
 
 SEVERITY_PENALTY = {
     "LOW": 3,

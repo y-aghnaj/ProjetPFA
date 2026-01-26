@@ -35,6 +35,7 @@ if __name__ == "__main__":
                         help="Path to JSON file OR scenario name in data/scenarios (without .json)")
     parser.add_argument("--llm", action="store_true", help="Generate LLM Markdown report using Ollama")
     parser.add_argument("--llm-model", default="llama3.1", help="Ollama model name (e.g., llama3.1)")
+    parser.add_argument("--baseline", default=None, help="Baseline scenario name/path for diff scan")
     args = parser.parse_args()
 
     state = load_state(scenario_path(args.scenario))
