@@ -1,0 +1,184 @@
+{
+  "account": { "provider": "AWS", "tenancy": "demo-account", "region": "eu-central-1" },
+  "meta": {
+    "scenario_family": "aws_ecommerce_dynamic",
+    "snapshot": "t1",
+    "captured_at": "2026-01-30T18:01:00+01:00",
+    "tags": ["complex scenario", "prod", "ecommerce", "dynamic"],
+    "story": "Some fixes applied (bastion SSH restricted, one bucket hardened) but a temporary public bucket appears and orders DB is still public with backups disabled."
+  },
+  "resources": [
+    { "id": "vcn_main", "type": "vcn", "name": "vpc-main", "cidr": "10.10.0.0/16", "tags": { "environment": "prod", "owner": "platform" } },
+
+    { "id": "subnet_public", "type": "subnet", "name": "public-subnet", "cidr": "10.10.1.0/24", "tags": { "environment": "prod", "owner": "platform" } },
+    { "id": "subnet_app", "type": "subnet", "name": "app-subnet", "cidr": "10.10.2.0/24", "tags": { "environment": "prod", "owner": "platform" } },
+    { "id": "subnet_db", "type": "subnet", "name": "db-subnet", "cidr": "10.10.3.0/24", "tags": { "environment": "prod", "owner": "platform" } },
+
+    {
+      "id": "nsg_bastion",
+      "type": "network_security_group",
+      "name": "bastion-sg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 22, "source": "203.0.113.10/32" }
+      ],
+      "tags": { "environment": "prod", "owner": "secops" }
+    },
+    {
+      "id": "nsg_app",
+      "type": "network_security_group",
+      "name": "app-sg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 443, "source": "0.0.0.0/0" },
+        { "protocol": "tcp", "port": 3389, "source": "0.0.0.0/0" }
+      ],
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+    {
+      "id": "nsg_db",
+      "type": "network_security_group",
+      "name": "db-sg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 1521, "source": "10.10.2.0/24" }
+      ],
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+
+    {
+      "id": "compute_bastion_01",
+      "type": "compute_instance",
+      "name": "bastion-01",
+      "shape": "t3.medium",
+      "ocpus": 2,
+      "memory_gb": 8,
+      "avg_cpu_utilization": 9.0,
+      "tags": { "environment": "prod", "owner": "secops" }
+    },
+    {
+      "id": "compute_web_01",
+      "type": "compute_instance",
+      "name": "web-01",
+      "shape": "m6i.2xlarge",
+      "ocpus": 8,
+      "memory_gb": 32,
+      "avg_cpu_utilization": 2.2,
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+    {
+      "id": "compute_web_02",
+      "type": "compute_instance",
+      "name": "web-02",
+      "shape": "m6i.2xlarge",
+      "ocpus": 8,
+      "memory_gb": 32,
+      "avg_cpu_utilization": 2.7,
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+    {
+      "id": "compute_worker_01",
+      "type": "compute_instance",
+      "name": "worker-01",
+      "shape": "t3.xlarge",
+      "ocpus": 4,
+      "memory_gb": 16,
+      "avg_cpu_utilization": 3.8,
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+
+    {
+      "id": "bucket_orders",
+      "type": "object_storage_bucket",
+      "name": "orders-bucket",
+      "compartment": "comp_ecommerce",
+      "public": false,
+      "encrypted": true,
+      "logging_enabled": true,
+      "versioning": true,
+      "tags": { "environment": "prod", "owner": "data", "data_classification": "confidential" }
+    },
+    {
+      "id": "bucket_product_images",
+      "type": "object_storage_bucket",
+      "name": "product-images",
+      "compartment": "comp_ecommerce",
+      "public": true,
+      "encrypted": false,
+      "logging_enabled": false,
+      "versioning": false,
+      "tags": { "environment": "prod", "owner": "marketing", "data_classification": "internal" }
+    },
+    {
+      "id": "bucket_tmp_export",
+      "type": "object_storage_bucket",
+      "name": "tmp-export",
+      "compartment": "comp_ecommerce",
+      "public": true,
+      "encrypted": false,
+      "logging_enabled": false,
+      "versioning": false,
+      "tags": { "environment": "prod", "owner": "data", "data_classification": "internal" }
+    },
+    {
+      "id": "bucket_audit_logs",
+      "type": "object_storage_bucket",
+      "name": "audit-logs",
+      "compartment": "comp_security",
+      "public": false,
+      "encrypted": true,
+      "logging_enabled": true,
+      "versioning": true,
+      "tags": { "environment": "prod", "owner": "secops", "data_classification": "restricted" }
+    },
+
+    {
+      "id": "adb_orders",
+      "type": "autonomous_database",
+      "name": "orders-db",
+      "encrypted": true,
+      "public_endpoint": true,
+      "backups_enabled": false,
+      "tags": { "environment": "prod", "owner": "db-team", "data_classification": "confidential" }
+    },
+    {
+      "id": "adb_analytics",
+      "type": "autonomous_database",
+      "name": "analytics-db",
+      "encrypted": true,
+      "public_endpoint": true,
+      "backups_enabled": true,
+      "tags": { "environment": "prod", "owner": "data", "data_classification": "internal" }
+    },
+
+    { "id": "lb_public", "type": "load_balancer", "name": "alb-public", "tags": { "environment": "prod", "owner": "platform" } },
+    { "id": "apigw_main", "type": "api_gateway", "name": "api-gw", "tags": { "environment": "prod", "owner": "platform" } },
+
+    { "id": "user_alice", "type": "user", "name": "alice", "tags": { "team": "platform" } },
+    { "id": "user_devops", "type": "user", "name": "devops", "tags": { "team": "secops" } }
+  ],
+  "relations": [
+    { "from": "subnet_public", "to": "vcn_main", "relation": "in_vcn" },
+    { "from": "subnet_app", "to": "vcn_main", "relation": "in_vcn" },
+    { "from": "subnet_db", "to": "vcn_main", "relation": "in_vcn" },
+
+    { "from": "nsg_bastion", "to": "compute_bastion_01", "relation": "protects" },
+    { "from": "compute_bastion_01", "to": "subnet_public", "relation": "in_subnet" },
+
+    { "from": "nsg_app", "to": "compute_web_01", "relation": "protects" },
+    { "from": "nsg_app", "to": "compute_web_02", "relation": "protects" },
+    { "from": "nsg_app", "to": "compute_worker_01", "relation": "protects" },
+
+    { "from": "compute_web_01", "to": "subnet_app", "relation": "in_subnet" },
+    { "from": "compute_web_02", "to": "subnet_app", "relation": "in_subnet" },
+    { "from": "compute_worker_01", "to": "subnet_app", "relation": "in_subnet" },
+
+    { "from": "subnet_app", "to": "adb_orders", "relation": "connects_to" },
+    { "from": "subnet_app", "to": "adb_analytics", "relation": "connects_to" },
+
+    { "from": "lb_public", "to": "apigw_main", "relation": "routes_to" },
+    { "from": "apigw_main", "to": "compute_web_01", "relation": "routes_to" },
+    { "from": "apigw_main", "to": "compute_web_02", "relation": "routes_to" },
+
+    { "from": "user_alice", "to": "bucket_orders", "relation": "created" },
+    { "from": "user_alice", "to": "adb_orders", "relation": "created" },
+    { "from": "user_devops", "to": "bucket_audit_logs", "relation": "created" }
+  ]
+}

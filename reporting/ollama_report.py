@@ -7,10 +7,10 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, List
 
-MAX_FINDINGS_FOR_LLM = 12  # keep prompt small
-OLLAMA_TIMEOUT_SEC = 900   # 15 min max (adjust)
+MAX_FINDINGS_FOR_LLM = 30  # keep prompt small
+OLLAMA_TIMEOUT_SEC = 1800   # 15 min max (adjust)
 
-PROMPT_TEMPLATE = """You are a cloud governance auditor specializing in Oracle Cloud Infrastructure (OCI).
+PROMPT_TEMPLATE = """You are a cloud governance auditor specializing in Cloud Infrastructure (OCI, AWS or Azure).
 
 Write a professional assessment report based ONLY on the JSON input below.
 
@@ -19,7 +19,7 @@ Hard constraints:
 - Use an audit-style tone.
 - Include sections:
   1) Executive Summary
-  2) Environment Overview (OCI)
+  2) Environment Overview (By provider form the json)
   3) Well-Architected Scores (Security, Reliability, Performance, Cost, Operational Excellence) with brief interpretation
   4) Key Findings (ordered by severity, then risk)
   5) Standards Traceability (WAF/CIS/ISO) (summarize what each major finding maps to)

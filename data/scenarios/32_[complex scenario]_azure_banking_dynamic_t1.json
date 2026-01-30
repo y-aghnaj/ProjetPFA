@@ -1,0 +1,162 @@
+{
+  "account": { "provider": "AZURE", "tenancy": "demo-subscription", "region": "westeurope" },
+  "meta": {
+    "scenario_family": "azure_banking_dynamic",
+    "snapshot": "t1",
+    "captured_at": "2026-01-30T18:01:00+01:00",
+    "tags": ["complex scenario", "prod", "banking", "dynamic"],
+    "story": "Partial remediation: jumpbox access restricted and one bucket hardened, but a temporary public bucket appears and DB remains public and unencrypted."
+  },
+  "resources": [
+    { "id": "vcn_main", "type": "vcn", "name": "vnet-main", "cidr": "10.20.0.0/16", "tags": { "environment": "prod", "owner": "platform" } },
+
+    { "id": "subnet_public", "type": "subnet", "name": "public-subnet", "cidr": "10.20.1.0/24", "tags": { "environment": "prod", "owner": "platform" } },
+    { "id": "subnet_app", "type": "subnet", "name": "app-subnet", "cidr": "10.20.2.0/24", "tags": { "environment": "prod", "owner": "platform" } },
+    { "id": "subnet_db", "type": "subnet", "name": "db-subnet", "cidr": "10.20.3.0/24", "tags": { "environment": "prod", "owner": "platform" } },
+
+    {
+      "id": "nsg_jumpbox",
+      "type": "network_security_group",
+      "name": "jumpbox-nsg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 3389, "source": "203.0.113.10/32" },
+        { "protocol": "tcp", "port": 22, "source": "203.0.113.10/32" }
+      ],
+      "tags": { "environment": "prod", "owner": "secops" }
+    },
+    {
+      "id": "nsg_app",
+      "type": "network_security_group",
+      "name": "app-nsg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 443, "source": "0.0.0.0/0" }
+      ],
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+    {
+      "id": "nsg_db",
+      "type": "network_security_group",
+      "name": "db-nsg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 1521, "source": "10.20.2.0/24" }
+      ],
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+
+    {
+      "id": "compute_jumpbox_01",
+      "type": "compute_instance",
+      "name": "jumpbox-01",
+      "shape": "Standard_D2s_v5",
+      "ocpus": 2,
+      "memory_gb": 8,
+      "avg_cpu_utilization": 10.0,
+      "tags": { "environment": "prod", "owner": "secops" }
+    },
+    {
+      "id": "compute_api_01",
+      "type": "compute_instance",
+      "name": "api-01",
+      "shape": "Standard_D8s_v5",
+      "ocpus": 8,
+      "memory_gb": 32,
+      "avg_cpu_utilization": 2.4,
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+    {
+      "id": "compute_api_02",
+      "type": "compute_instance",
+      "name": "api-02",
+      "shape": "Standard_D8s_v5",
+      "ocpus": 8,
+      "memory_gb": 32,
+      "avg_cpu_utilization": 2.9,
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+
+    {
+      "id": "bucket_customer_docs",
+      "type": "object_storage_bucket",
+      "name": "customer-docs",
+      "compartment": "comp_banking",
+      "public": false,
+      "encrypted": true,
+      "logging_enabled": true,
+      "versioning": true,
+      "tags": { "environment": "prod", "owner": "compliance", "data_classification": "confidential" }
+    },
+    {
+      "id": "bucket_statements",
+      "type": "object_storage_bucket",
+      "name": "monthly-statements",
+      "compartment": "comp_banking",
+      "public": true,
+      "encrypted": false,
+      "logging_enabled": false,
+      "versioning": false,
+      "tags": { "environment": "prod", "owner": "data", "data_classification": "restricted" }
+    },
+    {
+      "id": "bucket_tmp_migration",
+      "type": "object_storage_bucket",
+      "name": "tmp-migration",
+      "compartment": "comp_banking",
+      "public": true,
+      "encrypted": false,
+      "logging_enabled": false,
+      "versioning": false,
+      "tags": { "environment": "prod", "owner": "data", "data_classification": "internal" }
+    },
+    {
+      "id": "bucket_audit_logs",
+      "type": "object_storage_bucket",
+      "name": "audit-logs",
+      "compartment": "comp_security",
+      "public": false,
+      "encrypted": true,
+      "logging_enabled": true,
+      "versioning": true,
+      "tags": { "environment": "prod", "owner": "secops", "data_classification": "restricted" }
+    },
+
+    {
+      "id": "adb_core",
+      "type": "autonomous_database",
+      "name": "core-db",
+      "encrypted": false,
+      "public_endpoint": true,
+      "backups_enabled": false,
+      "tags": { "environment": "prod", "owner": "db-team", "data_classification": "confidential" }
+    },
+
+    { "id": "lb_public", "type": "load_balancer", "name": "frontdoor-lb", "tags": { "environment": "prod", "owner": "platform" } },
+    { "id": "apigw_main", "type": "api_gateway", "name": "api-mgmt", "tags": { "environment": "prod", "owner": "platform" } },
+
+    { "id": "user_alice", "type": "user", "name": "alice", "tags": { "team": "platform" } },
+    { "id": "user_secops", "type": "user", "name": "secops", "tags": { "team": "secops" } }
+  ],
+  "relations": [
+    { "from": "subnet_public", "to": "vcn_main", "relation": "in_vcn" },
+    { "from": "subnet_app", "to": "vcn_main", "relation": "in_vcn" },
+    { "from": "subnet_db", "to": "vcn_main", "relation": "in_vcn" },
+
+    { "from": "nsg_jumpbox", "to": "compute_jumpbox_01", "relation": "protects" },
+    { "from": "compute_jumpbox_01", "to": "subnet_public", "relation": "in_subnet" },
+
+    { "from": "nsg_app", "to": "compute_api_01", "relation": "protects" },
+    { "from": "nsg_app", "to": "compute_api_02", "relation": "protects" },
+
+    { "from": "compute_api_01", "to": "subnet_app", "relation": "in_subnet" },
+    { "from": "compute_api_02", "to": "subnet_app", "relation": "in_subnet" },
+
+    { "from": "subnet_app", "to": "adb_core", "relation": "connects_to" },
+
+    { "from": "lb_public", "to": "apigw_main", "relation": "routes_to" },
+    { "from": "apigw_main", "to": "compute_api_01", "relation": "routes_to" },
+    { "from": "apigw_main", "to": "compute_api_02", "relation": "routes_to" },
+
+    { "from": "user_alice", "to": "bucket_customer_docs", "relation": "created" },
+    { "from": "user_alice", "to": "adb_core", "relation": "created" },
+    { "from": "user_secops", "to": "bucket_audit_logs", "relation": "created" }
+  ]
+}

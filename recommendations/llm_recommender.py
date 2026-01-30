@@ -69,12 +69,8 @@ def _safe_json_loads(s: str) -> Dict[str, Any]:
         raise
 
 def validate_llm_recos(input_findings: List[dict], llm_output: Dict[str, Any]) -> List[dict]:
-    """
-    Enforce guardrails:
-    - one recommendation per finding
-    - rule_id/resource_id must exist
-    """
-    findings_set = {(f["rule_id"], f["resource_id"]) for f in input_findings}
+    findings_index = {(f["rule_id"], f["resource_id"]): f for f in input_findings}
+    findings_set = set(findings_index.keys())
 
     recos = llm_output.get("recommendations", [])
     if not isinstance(recos, list):
@@ -87,16 +83,21 @@ def validate_llm_recos(input_findings: List[dict], llm_output: Dict[str, Any]) -
             # drop hallucinated or mismatched entries
             continue
         # minimal required fields
+        f0 = findings_index[key]
         cleaned.append({
             "rule_id": r.get("rule_id"),
             "resource_id": r.get("resource_id"),
-            "responsibility": r.get("responsibility"),
+            # ✅ impose SRM responsibility from finding (anti-hallucination)
+            "responsibility": f0.get("responsibility"),
             "title": r.get("title") or "Recommendation",
             "rationale": r.get("rationale") or "",
             "steps": r.get("steps") if isinstance(r.get("steps"), list) else [],
             "risk_if_ignored": r.get("risk_if_ignored") or "",
             "verification": r.get("verification") if isinstance(r.get("verification"), list) else [],
-            "source": "LLM"
+            # ✅ force standards alignment
+            "pillars": f0.get("pillars", []),
+            "references": f0.get("references", []),
+            "source": "LLM",
         })
 
     # Ensure coverage: if LLM missed findings, caller can fall back to static templates.

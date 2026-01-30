@@ -78,15 +78,15 @@ run_btn = st.sidebar.button("Run Audit", type="primary")
 result = st.session_state.get("last_result")
 
 if run_btn:
-    with st.spinner("Running audit..."):
-        result = run_audit(
-            scenario=scenario,
-            export_json=export_json,
-            report_json_path="reports/report.json",
-            use_llm_recos=use_llm_recos,
-            llm_model=llm_model,
-            baseline_scenario=baseline,
-        )
+    result = run_audit(
+        scenario=scenario,
+        export_json=export_json,
+        report_json_path="reports/report.json",
+        use_llm_recos=use_llm_recos,
+        llm_model=llm_model,
+        baseline_scenario=baseline,
+        waf_weights=waf_weights,
+    )
 
     st.session_state["last_result"] = result
     st.success("Audit complete.")

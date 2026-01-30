@@ -1,21 +1,4269 @@
 {
-  "provider": "OCI",
-  "scenario": "04_intern_best_practices_near_compliant",
+  "provider": "AWS",
+  "scenario": "31_[complex scenario]_aws_ecommerce_dynamic_t1",
+  "meta": {
+    "scenario_family": "aws_ecommerce_dynamic",
+    "snapshot": "t1",
+    "captured_at": "2026-01-30T18:01:00+01:00",
+    "tags": [
+      "complex scenario",
+      "prod",
+      "ecommerce",
+      "dynamic"
+    ],
+    "story": "Some fixes applied (bastion SSH restricted, one bucket hardened) but a temporary public bucket appears and orders DB is still public with backups disabled."
+  },
   "summary": {
-    "nodes": 4,
-    "edges": 2
+    "nodes": 21,
+    "edges": 19
   },
-  "findings": [],
-  "scores": {
-    "security_score": 100,
-    "performance_score": 100,
-    "global_score": 100,
-    "weights": {
-      "security": 0.5,
-      "performance": 0.5
+  "findings": [
+    {
+      "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
+      "resource_id": "bucket_product_images",
+      "severity": "MEDIUM",
+      "responsibility": "CUSTOMER",
+      "message": "Object Storage bucket encryption is disabled.",
+      "evidence": {
+        "encrypted": false,
+        "name": "product-images"
+      },
+      "risk": 0.12,
+      "confidence": 1.0,
+      "impact": [
+        "data_exposure"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "marketing",
+          "data_classification": "internal"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-02",
+          "name": "Encrypt data at rest"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-2",
+          "name": "Ensure encryption at rest is enabled"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.10.1",
+          "name": "Cryptographic controls"
+        }
+      ],
+      "suppressed": true,
+      "covered_by": [
+        "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT"
+      ]
     },
-    "penalties": []
+    {
+      "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+      "resource_id": "bucket_product_images",
+      "severity": "MEDIUM",
+      "responsibility": "CUSTOMER",
+      "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+      "evidence": {
+        "logging_enabled": false,
+        "name": "product-images"
+      },
+      "risk": 0.12,
+      "confidence": 1.0,
+      "impact": [
+        "detection_gap"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "marketing",
+          "data_classification": "internal"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY",
+        "OPERATIONAL_EXCELLENCE"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "OPS-01",
+          "name": "Enable observability & audit logging"
+        },
+        {
+          "standard": "CIS",
+          "id": "Logging-1",
+          "name": "Ensure logging is enabled for storage access"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.4",
+          "name": "Logging and monitoring"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+      "resource_id": "bucket_product_images",
+      "severity": "MEDIUM",
+      "responsibility": "CUSTOMER",
+      "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+      "evidence": {
+        "versioning": false,
+        "name": "product-images"
+      },
+      "risk": 0.12,
+      "confidence": 1.0,
+      "impact": [
+        "availability",
+        "recovery_gap"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "marketing",
+          "data_classification": "internal"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "RELIABILITY",
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "REL-01",
+          "name": "Design for recovery (backups/versioning)"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-3",
+          "name": "Ensure object versioning is enabled where applicable"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.17.1",
+          "name": "Information security continuity"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
+      "resource_id": "bucket_tmp_export",
+      "severity": "MEDIUM",
+      "responsibility": "CUSTOMER",
+      "message": "Object Storage bucket encryption is disabled.",
+      "evidence": {
+        "encrypted": false,
+        "name": "tmp-export"
+      },
+      "risk": 0.12,
+      "confidence": 1.0,
+      "impact": [
+        "data_exposure"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "data",
+          "data_classification": "internal"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-02",
+          "name": "Encrypt data at rest"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-2",
+          "name": "Ensure encryption at rest is enabled"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.10.1",
+          "name": "Cryptographic controls"
+        }
+      ],
+      "suppressed": true,
+      "covered_by": [
+        "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT"
+      ]
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+      "resource_id": "bucket_tmp_export",
+      "severity": "MEDIUM",
+      "responsibility": "CUSTOMER",
+      "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+      "evidence": {
+        "logging_enabled": false,
+        "name": "tmp-export"
+      },
+      "risk": 0.12,
+      "confidence": 1.0,
+      "impact": [
+        "detection_gap"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "data",
+          "data_classification": "internal"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY",
+        "OPERATIONAL_EXCELLENCE"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "OPS-01",
+          "name": "Enable observability & audit logging"
+        },
+        {
+          "standard": "CIS",
+          "id": "Logging-1",
+          "name": "Ensure logging is enabled for storage access"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.4",
+          "name": "Logging and monitoring"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+      "resource_id": "bucket_tmp_export",
+      "severity": "MEDIUM",
+      "responsibility": "CUSTOMER",
+      "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+      "evidence": {
+        "versioning": false,
+        "name": "tmp-export"
+      },
+      "risk": 0.12,
+      "confidence": 1.0,
+      "impact": [
+        "availability",
+        "recovery_gap"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "data",
+          "data_classification": "internal"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "RELIABILITY",
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "REL-01",
+          "name": "Design for recovery (backups/versioning)"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-3",
+          "name": "Ensure object versioning is enabled where applicable"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.17.1",
+          "name": "Information security continuity"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+      "resource_id": "compute_web_01",
+      "severity": "MEDIUM",
+      "responsibility": "CUSTOMER",
+      "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+      "evidence": {
+        "avg_cpu_utilization": 2.2,
+        "ocpus": 8,
+        "memory_gb": 32,
+        "shape": "m6i.2xlarge",
+        "name": "web-01"
+      },
+      "risk": 0.08,
+      "confidence": 1.0,
+      "impact": [
+        "cost_inefficiency",
+        "performance_waste"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "platform"
+        }
+      },
+      "primary_pillar": "PERFORMANCE",
+      "pillars": [
+        "PERFORMANCE",
+        "COST"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "PERF-01",
+          "name": "Right-size resources to meet workload demands efficiently"
+        },
+        {
+          "standard": "CIS",
+          "id": "Cost-1",
+          "name": "Ensure resources are right-sized / avoid over-provisioning"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.1",
+          "name": "Operational procedures and responsibilities (resource management)"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+      "resource_id": "compute_web_02",
+      "severity": "MEDIUM",
+      "responsibility": "CUSTOMER",
+      "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+      "evidence": {
+        "avg_cpu_utilization": 2.7,
+        "ocpus": 8,
+        "memory_gb": 32,
+        "shape": "m6i.2xlarge",
+        "name": "web-02"
+      },
+      "risk": 0.08,
+      "confidence": 1.0,
+      "impact": [
+        "cost_inefficiency",
+        "performance_waste"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "platform"
+        }
+      },
+      "primary_pillar": "PERFORMANCE",
+      "pillars": [
+        "PERFORMANCE",
+        "COST"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "PERF-01",
+          "name": "Right-size resources to meet workload demands efficiently"
+        },
+        {
+          "standard": "CIS",
+          "id": "Cost-1",
+          "name": "Ensure resources are right-sized / avoid over-provisioning"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.1",
+          "name": "Operational procedures and responsibilities (resource management)"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+      "resource_id": "compute_worker_01",
+      "severity": "MEDIUM",
+      "responsibility": "CUSTOMER",
+      "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+      "evidence": {
+        "avg_cpu_utilization": 3.8,
+        "ocpus": 4,
+        "memory_gb": 16,
+        "shape": "t3.xlarge",
+        "name": "worker-01"
+      },
+      "risk": 0.08,
+      "confidence": 1.0,
+      "impact": [
+        "cost_inefficiency",
+        "performance_waste"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "platform"
+        }
+      },
+      "primary_pillar": "PERFORMANCE",
+      "pillars": [
+        "PERFORMANCE",
+        "COST"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "PERF-01",
+          "name": "Right-size resources to meet workload demands efficiently"
+        },
+        {
+          "standard": "CIS",
+          "id": "Cost-1",
+          "name": "Ensure resources are right-sized / avoid over-provisioning"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.1",
+          "name": "Operational procedures and responsibilities (resource management)"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.PUBLIC",
+      "resource_id": "bucket_product_images",
+      "severity": "HIGH",
+      "responsibility": "CUSTOMER",
+      "message": "Object Storage bucket is public. This may expose sensitive data.",
+      "evidence": {
+        "public": true,
+        "name": "product-images",
+        "compartment": "comp_ecommerce"
+      },
+      "risk": 0.25,
+      "confidence": 1.0,
+      "impact": [
+        "data_exposure"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "marketing",
+          "data_classification": "internal"
+        },
+        "env": "prod"
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-01",
+          "name": "Protect data at rest and in transit / prevent public exposure"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-1",
+          "name": "Ensure storage is not publicly accessible"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.8.2",
+          "name": "Information classification & handling"
+        }
+      ],
+      "suppressed": true,
+      "covered_by": [
+        "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT"
+      ]
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.PUBLIC",
+      "resource_id": "bucket_tmp_export",
+      "severity": "HIGH",
+      "responsibility": "CUSTOMER",
+      "message": "Object Storage bucket is public. This may expose sensitive data.",
+      "evidence": {
+        "public": true,
+        "name": "tmp-export",
+        "compartment": "comp_ecommerce"
+      },
+      "risk": 0.25,
+      "confidence": 1.0,
+      "impact": [
+        "data_exposure"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "data",
+          "data_classification": "internal"
+        },
+        "env": "prod"
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-01",
+          "name": "Protect data at rest and in transit / prevent public exposure"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-1",
+          "name": "Ensure storage is not publicly accessible"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.8.2",
+          "name": "Information classification & handling"
+        }
+      ],
+      "suppressed": true,
+      "covered_by": [
+        "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT"
+      ]
+    },
+    {
+      "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+      "resource_id": "adb_orders",
+      "severity": "HIGH",
+      "responsibility": "CUSTOMER",
+      "message": "Database backups are disabled. This increases recovery time and data loss risk.",
+      "evidence": {
+        "backups_enabled": false,
+        "name": "orders-db"
+      },
+      "risk": 0.25,
+      "confidence": 1.0,
+      "impact": [
+        "availability",
+        "recovery_gap"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "db-team",
+          "data_classification": "confidential"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY",
+        "RELIABILITY",
+        "OPERATIONAL_EXCELLENCE"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "REL-02",
+          "name": "Backups & recovery testing"
+        },
+        {
+          "standard": "CIS",
+          "id": "DB-2",
+          "name": "Ensure database backups are enabled"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.3",
+          "name": "Backup"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.SEC.NET.RDP_PUBLIC",
+      "resource_id": "nsg_app",
+      "severity": "CRITICAL",
+      "responsibility": "CUSTOMER",
+      "message": "RDP port 3389 is open to the internet (0.0.0.0/0). This increases compromise risk.",
+      "evidence": {
+        "protocol": "tcp",
+        "port": 3389,
+        "source": "0.0.0.0/0",
+        "nsg": "app-sg"
+      },
+      "risk": 0.4,
+      "confidence": 1.0,
+      "impact": [
+        "initial_access"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "platform"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-04",
+          "name": "Limit inbound access / restrict management ports"
+        },
+        {
+          "standard": "CIS",
+          "id": "Network-1",
+          "name": "Restrict administrative ports from the internet"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.13.1",
+          "name": "Network security management"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+      "resource_id": "bucket_product_images",
+      "severity": "CRITICAL",
+      "responsibility": "CUSTOMER",
+      "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+      "evidence": {
+        "public": true,
+        "encrypted": false,
+        "name": "product-images"
+      },
+      "risk": 0.4,
+      "confidence": 1.0,
+      "impact": [
+        "data_exposure"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "marketing",
+          "data_classification": "internal"
+        },
+        "covers": [
+          "OCI.SEC.BUCKET.PUBLIC",
+          "OCI.SEC.BUCKET.ENCRYPTION"
+        ]
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-01",
+          "name": "Prevent public exposure + encrypt data"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-1",
+          "name": "Ensure storage is not public; encryption enabled"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.10.1",
+          "name": "Cryptographic controls"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+      "resource_id": "bucket_tmp_export",
+      "severity": "CRITICAL",
+      "responsibility": "CUSTOMER",
+      "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+      "evidence": {
+        "public": true,
+        "encrypted": false,
+        "name": "tmp-export"
+      },
+      "risk": 0.4,
+      "confidence": 1.0,
+      "impact": [
+        "data_exposure"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "data",
+          "data_classification": "internal"
+        },
+        "covers": [
+          "OCI.SEC.BUCKET.PUBLIC",
+          "OCI.SEC.BUCKET.ENCRYPTION"
+        ]
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-01",
+          "name": "Prevent public exposure + encrypt data"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-1",
+          "name": "Ensure storage is not public; encryption enabled"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.10.1",
+          "name": "Cryptographic controls"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+      "resource_id": "adb_orders",
+      "severity": "CRITICAL",
+      "responsibility": "CUSTOMER",
+      "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
+      "evidence": {
+        "public_endpoint": true,
+        "name": "orders-db"
+      },
+      "risk": 0.4,
+      "confidence": 1.0,
+      "impact": [
+        "initial_access",
+        "data_exposure"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "db-team",
+          "data_classification": "confidential"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-03",
+          "name": "Reduce external exposure (private endpoints)"
+        },
+        {
+          "standard": "CIS",
+          "id": "Network-2",
+          "name": "Ensure databases are not publicly reachable"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.13.1",
+          "name": "Network security management"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    },
+    {
+      "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+      "resource_id": "adb_analytics",
+      "severity": "CRITICAL",
+      "responsibility": "CUSTOMER",
+      "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
+      "evidence": {
+        "public_endpoint": true,
+        "name": "analytics-db"
+      },
+      "risk": 0.4,
+      "confidence": 1.0,
+      "impact": [
+        "initial_access",
+        "data_exposure"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "data",
+          "data_classification": "internal"
+        }
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-03",
+          "name": "Reduce external exposure (private endpoints)"
+        },
+        {
+          "standard": "CIS",
+          "id": "Network-2",
+          "name": "Ensure databases are not publicly reachable"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.13.1",
+          "name": "Network security management"
+        }
+      ],
+      "suppressed": false,
+      "covered_by": []
+    }
+  ],
+  "scores": {
+    "security_score": 0,
+    "performance_score": 90,
+    "global_score": 61,
+    "pillar_scores": {
+      "SECURITY": 0,
+      "RELIABILITY": 86,
+      "PERFORMANCE": 90,
+      "COST": 90,
+      "OPERATIONAL_EXCELLENCE": 86
+    },
+    "waf_weights": {
+      "SECURITY": 0.3,
+      "RELIABILITY": 0.2,
+      "PERFORMANCE": 0.15,
+      "COST": 0.15,
+      "OPERATIONAL_EXCELLENCE": 0.2
+    },
+    "penalties": [
+      {
+        "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+        "resource_id": "bucket_product_images",
+        "severity": "MEDIUM",
+        "responsibility": "CUSTOMER",
+        "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+        "risk": 0.12,
+        "confidence": 1.0,
+        "pillars": [
+          "SECURITY",
+          "OPERATIONAL_EXCELLENCE"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "OPS-01",
+            "name": "Enable observability & audit logging"
+          },
+          {
+            "standard": "CIS",
+            "id": "Logging-1",
+            "name": "Ensure logging is enabled for storage access"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.12.4",
+            "name": "Logging and monitoring"
+          }
+        ],
+        "penalty": 7
+      },
+      {
+        "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+        "resource_id": "bucket_product_images",
+        "severity": "MEDIUM",
+        "responsibility": "CUSTOMER",
+        "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+        "risk": 0.12,
+        "confidence": 1.0,
+        "pillars": [
+          "RELIABILITY",
+          "SECURITY"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "REL-01",
+            "name": "Design for recovery (backups/versioning)"
+          },
+          {
+            "standard": "CIS",
+            "id": "Storage-3",
+            "name": "Ensure object versioning is enabled where applicable"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.17.1",
+            "name": "Information security continuity"
+          }
+        ],
+        "penalty": 7
+      },
+      {
+        "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+        "resource_id": "bucket_tmp_export",
+        "severity": "MEDIUM",
+        "responsibility": "CUSTOMER",
+        "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+        "risk": 0.12,
+        "confidence": 1.0,
+        "pillars": [
+          "SECURITY",
+          "OPERATIONAL_EXCELLENCE"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "OPS-01",
+            "name": "Enable observability & audit logging"
+          },
+          {
+            "standard": "CIS",
+            "id": "Logging-1",
+            "name": "Ensure logging is enabled for storage access"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.12.4",
+            "name": "Logging and monitoring"
+          }
+        ],
+        "penalty": 7
+      },
+      {
+        "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+        "resource_id": "bucket_tmp_export",
+        "severity": "MEDIUM",
+        "responsibility": "CUSTOMER",
+        "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+        "risk": 0.12,
+        "confidence": 1.0,
+        "pillars": [
+          "RELIABILITY",
+          "SECURITY"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "REL-01",
+            "name": "Design for recovery (backups/versioning)"
+          },
+          {
+            "standard": "CIS",
+            "id": "Storage-3",
+            "name": "Ensure object versioning is enabled where applicable"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.17.1",
+            "name": "Information security continuity"
+          }
+        ],
+        "penalty": 7
+      },
+      {
+        "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+        "resource_id": "compute_web_01",
+        "severity": "MEDIUM",
+        "responsibility": "CUSTOMER",
+        "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+        "risk": 0.08,
+        "confidence": 1.0,
+        "pillars": [
+          "PERFORMANCE",
+          "COST"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "PERF-01",
+            "name": "Right-size resources to meet workload demands efficiently"
+          },
+          {
+            "standard": "CIS",
+            "id": "Cost-1",
+            "name": "Ensure resources are right-sized / avoid over-provisioning"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.12.1",
+            "name": "Operational procedures and responsibilities (resource management)"
+          }
+        ],
+        "penalty": 7
+      },
+      {
+        "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+        "resource_id": "compute_web_02",
+        "severity": "MEDIUM",
+        "responsibility": "CUSTOMER",
+        "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+        "risk": 0.08,
+        "confidence": 1.0,
+        "pillars": [
+          "PERFORMANCE",
+          "COST"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "PERF-01",
+            "name": "Right-size resources to meet workload demands efficiently"
+          },
+          {
+            "standard": "CIS",
+            "id": "Cost-1",
+            "name": "Ensure resources are right-sized / avoid over-provisioning"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.12.1",
+            "name": "Operational procedures and responsibilities (resource management)"
+          }
+        ],
+        "penalty": 7
+      },
+      {
+        "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+        "resource_id": "compute_worker_01",
+        "severity": "MEDIUM",
+        "responsibility": "CUSTOMER",
+        "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+        "risk": 0.08,
+        "confidence": 1.0,
+        "pillars": [
+          "PERFORMANCE",
+          "COST"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "PERF-01",
+            "name": "Right-size resources to meet workload demands efficiently"
+          },
+          {
+            "standard": "CIS",
+            "id": "Cost-1",
+            "name": "Ensure resources are right-sized / avoid over-provisioning"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.12.1",
+            "name": "Operational procedures and responsibilities (resource management)"
+          }
+        ],
+        "penalty": 7
+      },
+      {
+        "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+        "resource_id": "adb_orders",
+        "severity": "HIGH",
+        "responsibility": "CUSTOMER",
+        "message": "Database backups are disabled. This increases recovery time and data loss risk.",
+        "risk": 0.25,
+        "confidence": 1.0,
+        "pillars": [
+          "RELIABILITY",
+          "OPERATIONAL_EXCELLENCE"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "REL-02",
+            "name": "Backups & recovery testing"
+          },
+          {
+            "standard": "CIS",
+            "id": "DB-2",
+            "name": "Ensure database backups are enabled"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.12.3",
+            "name": "Backup"
+          }
+        ],
+        "penalty": 15
+      },
+      {
+        "rule_id": "OCI.SEC.NET.RDP_PUBLIC",
+        "resource_id": "nsg_app",
+        "severity": "CRITICAL",
+        "responsibility": "CUSTOMER",
+        "message": "RDP port 3389 is open to the internet (0.0.0.0/0). This increases compromise risk.",
+        "risk": 0.4,
+        "confidence": 1.0,
+        "pillars": [
+          "SECURITY"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "SEC-04",
+            "name": "Limit inbound access / restrict management ports"
+          },
+          {
+            "standard": "CIS",
+            "id": "Network-1",
+            "name": "Restrict administrative ports from the internet"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.13.1",
+            "name": "Network security management"
+          }
+        ],
+        "penalty": 25
+      },
+      {
+        "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+        "resource_id": "bucket_product_images",
+        "severity": "CRITICAL",
+        "responsibility": "CUSTOMER",
+        "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+        "risk": 0.4,
+        "confidence": 1.0,
+        "pillars": [
+          "SECURITY"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "SEC-01",
+            "name": "Prevent public exposure + encrypt data"
+          },
+          {
+            "standard": "CIS",
+            "id": "Storage-1",
+            "name": "Ensure storage is not public; encryption enabled"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.10.1",
+            "name": "Cryptographic controls"
+          }
+        ],
+        "penalty": 25
+      },
+      {
+        "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+        "resource_id": "bucket_tmp_export",
+        "severity": "CRITICAL",
+        "responsibility": "CUSTOMER",
+        "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+        "risk": 0.4,
+        "confidence": 1.0,
+        "pillars": [
+          "SECURITY"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "SEC-01",
+            "name": "Prevent public exposure + encrypt data"
+          },
+          {
+            "standard": "CIS",
+            "id": "Storage-1",
+            "name": "Ensure storage is not public; encryption enabled"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.10.1",
+            "name": "Cryptographic controls"
+          }
+        ],
+        "penalty": 25
+      },
+      {
+        "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+        "resource_id": "adb_orders",
+        "severity": "CRITICAL",
+        "responsibility": "CUSTOMER",
+        "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
+        "risk": 0.4,
+        "confidence": 1.0,
+        "pillars": [
+          "SECURITY"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "SEC-03",
+            "name": "Reduce external exposure (private endpoints)"
+          },
+          {
+            "standard": "CIS",
+            "id": "Network-2",
+            "name": "Ensure databases are not publicly reachable"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.13.1",
+            "name": "Network security management"
+          }
+        ],
+        "penalty": 25
+      },
+      {
+        "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+        "resource_id": "adb_analytics",
+        "severity": "CRITICAL",
+        "responsibility": "CUSTOMER",
+        "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
+        "risk": 0.4,
+        "confidence": 1.0,
+        "pillars": [
+          "SECURITY"
+        ],
+        "references": [
+          {
+            "standard": "WAF",
+            "id": "SEC-03",
+            "name": "Reduce external exposure (private endpoints)"
+          },
+          {
+            "standard": "CIS",
+            "id": "Network-2",
+            "name": "Ensure databases are not publicly reachable"
+          },
+          {
+            "standard": "ISO27001",
+            "id": "A.13.1",
+            "name": "Network security management"
+          }
+        ],
+        "penalty": 25
+      }
+    ],
+    "penalties_by_pillar": {
+      "SECURITY": [
+        {
+          "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+          "resource_id": "bucket_product_images",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY",
+            "OPERATIONAL_EXCELLENCE"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "OPS-01",
+              "name": "Enable observability & audit logging"
+            },
+            {
+              "standard": "CIS",
+              "id": "Logging-1",
+              "name": "Ensure logging is enabled for storage access"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.4",
+              "name": "Logging and monitoring"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+          "resource_id": "bucket_product_images",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "RELIABILITY",
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "REL-01",
+              "name": "Design for recovery (backups/versioning)"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-3",
+              "name": "Ensure object versioning is enabled where applicable"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.17.1",
+              "name": "Information security continuity"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+          "resource_id": "bucket_tmp_export",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY",
+            "OPERATIONAL_EXCELLENCE"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "OPS-01",
+              "name": "Enable observability & audit logging"
+            },
+            {
+              "standard": "CIS",
+              "id": "Logging-1",
+              "name": "Ensure logging is enabled for storage access"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.4",
+              "name": "Logging and monitoring"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+          "resource_id": "bucket_tmp_export",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "RELIABILITY",
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "REL-01",
+              "name": "Design for recovery (backups/versioning)"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-3",
+              "name": "Ensure object versioning is enabled where applicable"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.17.1",
+              "name": "Information security continuity"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.SEC.NET.RDP_PUBLIC",
+          "resource_id": "nsg_app",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "RDP port 3389 is open to the internet (0.0.0.0/0). This increases compromise risk.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-04",
+              "name": "Limit inbound access / restrict management ports"
+            },
+            {
+              "standard": "CIS",
+              "id": "Network-1",
+              "name": "Restrict administrative ports from the internet"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25.0
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+          "resource_id": "bucket_product_images",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-01",
+              "name": "Prevent public exposure + encrypt data"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-1",
+              "name": "Ensure storage is not public; encryption enabled"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.10.1",
+              "name": "Cryptographic controls"
+            }
+          ],
+          "penalty": 25.0
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+          "resource_id": "bucket_tmp_export",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-01",
+              "name": "Prevent public exposure + encrypt data"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-1",
+              "name": "Ensure storage is not public; encryption enabled"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.10.1",
+              "name": "Cryptographic controls"
+            }
+          ],
+          "penalty": 25.0
+        },
+        {
+          "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+          "resource_id": "adb_orders",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-03",
+              "name": "Reduce external exposure (private endpoints)"
+            },
+            {
+              "standard": "CIS",
+              "id": "Network-2",
+              "name": "Ensure databases are not publicly reachable"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25.0
+        },
+        {
+          "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+          "resource_id": "adb_analytics",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-03",
+              "name": "Reduce external exposure (private endpoints)"
+            },
+            {
+              "standard": "CIS",
+              "id": "Network-2",
+              "name": "Ensure databases are not publicly reachable"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25.0
+        }
+      ],
+      "RELIABILITY": [
+        {
+          "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+          "resource_id": "bucket_product_images",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "RELIABILITY",
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "REL-01",
+              "name": "Design for recovery (backups/versioning)"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-3",
+              "name": "Ensure object versioning is enabled where applicable"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.17.1",
+              "name": "Information security continuity"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+          "resource_id": "bucket_tmp_export",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "RELIABILITY",
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "REL-01",
+              "name": "Design for recovery (backups/versioning)"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-3",
+              "name": "Ensure object versioning is enabled where applicable"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.17.1",
+              "name": "Information security continuity"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+          "resource_id": "adb_orders",
+          "severity": "HIGH",
+          "responsibility": "CUSTOMER",
+          "message": "Database backups are disabled. This increases recovery time and data loss risk.",
+          "risk": 0.25,
+          "confidence": 1.0,
+          "pillars": [
+            "RELIABILITY",
+            "OPERATIONAL_EXCELLENCE"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "REL-02",
+              "name": "Backups & recovery testing"
+            },
+            {
+              "standard": "CIS",
+              "id": "DB-2",
+              "name": "Ensure database backups are enabled"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.3",
+              "name": "Backup"
+            }
+          ],
+          "penalty": 7.5
+        }
+      ],
+      "PERFORMANCE": [
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_web_01",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_web_02",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_worker_01",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 3.5
+        }
+      ],
+      "COST": [
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_web_01",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_web_02",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_worker_01",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 3.5
+        }
+      ],
+      "OPERATIONAL_EXCELLENCE": [
+        {
+          "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+          "resource_id": "bucket_product_images",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY",
+            "OPERATIONAL_EXCELLENCE"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "OPS-01",
+              "name": "Enable observability & audit logging"
+            },
+            {
+              "standard": "CIS",
+              "id": "Logging-1",
+              "name": "Ensure logging is enabled for storage access"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.4",
+              "name": "Logging and monitoring"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+          "resource_id": "bucket_tmp_export",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY",
+            "OPERATIONAL_EXCELLENCE"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "OPS-01",
+              "name": "Enable observability & audit logging"
+            },
+            {
+              "standard": "CIS",
+              "id": "Logging-1",
+              "name": "Ensure logging is enabled for storage access"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.4",
+              "name": "Logging and monitoring"
+            }
+          ],
+          "penalty": 3.5
+        },
+        {
+          "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+          "resource_id": "adb_orders",
+          "severity": "HIGH",
+          "responsibility": "CUSTOMER",
+          "message": "Database backups are disabled. This increases recovery time and data loss risk.",
+          "risk": 0.25,
+          "confidence": 1.0,
+          "pillars": [
+            "RELIABILITY",
+            "OPERATIONAL_EXCELLENCE"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "REL-02",
+              "name": "Backups & recovery testing"
+            },
+            {
+              "standard": "CIS",
+              "id": "DB-2",
+              "name": "Ensure database backups are enabled"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.3",
+              "name": "Backup"
+            }
+          ],
+          "penalty": 7.5
+        }
+      ]
+    }
   },
-  "recommendations": [],
-  "graph_dot": "digraph G {\n\"bucket_private\" [label=\"bucket_private\\nobject_storage_bucket\"];\n\"adb_secure\" [label=\"adb_secure\\nautonomous_database\"];\n\"nsg_sec\" [label=\"nsg_sec\\nnetwork_security_group\"];\n\"user_sec\" [label=\"user_sec\\nuser\"];\n\"user_sec\" -> \"bucket_private\" [label=\"created\"];\n\"user_sec\" -> \"adb_secure\" [label=\"created\"];\n}"
+  "recommendations": [
+    {
+      "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+      "resource_id": "bucket_product_images",
+      "title": "Enable access logging for Object Storage bucket",
+      "steps": [
+        "Enable bucket access logging.",
+        "Centralize logs in a dedicated audit bucket with restricted access.",
+        "Create alerts for anomalous access patterns."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Without logging, investigations and incident response are degraded.",
+      "risk_if_ignored": "Undetected data access, lack of forensic evidence, delayed containment.",
+      "verification": [
+        "Generate test access events and confirm they appear in logs.",
+        "Validate retention and access controls on audit log storage."
+      ],
+      "pillars": [
+        "SECURITY",
+        "OPERATIONAL_EXCELLENCE"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "OPS-01",
+          "name": "Enable observability & audit logging"
+        },
+        {
+          "standard": "CIS",
+          "id": "Logging-1",
+          "name": "Ensure logging is enabled for storage access"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.4",
+          "name": "Logging and monitoring"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+      "resource_id": "bucket_product_images",
+      "title": "Enable bucket versioning (recovery and anti-ransomware)",
+      "steps": [
+        "Enable object versioning.",
+        "Define retention/lifecycle policies to control storage growth.",
+        "Test restore/rollback for critical objects."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Versioning improves recovery from accidental deletion and ransomware.",
+      "risk_if_ignored": "Irreversible loss of data; prolonged downtime after incidents.",
+      "verification": [
+        "Upload and overwrite a test object, then restore a previous version.",
+        "Confirm lifecycle policy behavior on old versions."
+      ],
+      "pillars": [
+        "RELIABILITY",
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "REL-01",
+          "name": "Design for recovery (backups/versioning)"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-3",
+          "name": "Ensure object versioning is enabled where applicable"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.17.1",
+          "name": "Information security continuity"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+      "resource_id": "bucket_tmp_export",
+      "title": "Enable access logging for Object Storage bucket",
+      "steps": [
+        "Enable bucket access logging.",
+        "Centralize logs in a dedicated audit bucket with restricted access.",
+        "Create alerts for anomalous access patterns."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Without logging, investigations and incident response are degraded.",
+      "risk_if_ignored": "Undetected data access, lack of forensic evidence, delayed containment.",
+      "verification": [
+        "Generate test access events and confirm they appear in logs.",
+        "Validate retention and access controls on audit log storage."
+      ],
+      "pillars": [
+        "SECURITY",
+        "OPERATIONAL_EXCELLENCE"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "OPS-01",
+          "name": "Enable observability & audit logging"
+        },
+        {
+          "standard": "CIS",
+          "id": "Logging-1",
+          "name": "Ensure logging is enabled for storage access"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.4",
+          "name": "Logging and monitoring"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+      "resource_id": "bucket_tmp_export",
+      "title": "Enable bucket versioning (recovery and anti-ransomware)",
+      "steps": [
+        "Enable object versioning.",
+        "Define retention/lifecycle policies to control storage growth.",
+        "Test restore/rollback for critical objects."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Versioning improves recovery from accidental deletion and ransomware.",
+      "risk_if_ignored": "Irreversible loss of data; prolonged downtime after incidents.",
+      "verification": [
+        "Upload and overwrite a test object, then restore a previous version.",
+        "Confirm lifecycle policy behavior on old versions."
+      ],
+      "pillars": [
+        "RELIABILITY",
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "REL-01",
+          "name": "Design for recovery (backups/versioning)"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-3",
+          "name": "Ensure object versioning is enabled where applicable"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.17.1",
+          "name": "Information security continuity"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+      "resource_id": "compute_web_01",
+      "title": "Right-size compute resources to reduce waste and improve efficiency",
+      "steps": [
+        "Review CPU/memory metrics over an appropriate observation window.",
+        "Downsize the instance shape (or reduce OCPUs) based on sustained utilization.",
+        "Implement autoscaling if workload is bursty.",
+        "Track cost savings and ensure performance SLOs remain met."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Sustained low CPU on large shapes indicates over-provisioning.",
+      "risk_if_ignored": "Unnecessary spend, resource waste, inefficient capacity planning.",
+      "verification": [
+        "Re-check utilization after resizing.",
+        "Verify latency/SLOs remain within targets."
+      ],
+      "pillars": [
+        "PERFORMANCE",
+        "COST"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "PERF-01",
+          "name": "Right-size resources to meet workload demands efficiently"
+        },
+        {
+          "standard": "CIS",
+          "id": "Cost-1",
+          "name": "Ensure resources are right-sized / avoid over-provisioning"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.1",
+          "name": "Operational procedures and responsibilities (resource management)"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+      "resource_id": "compute_web_02",
+      "title": "Right-size compute resources to reduce waste and improve efficiency",
+      "steps": [
+        "Review CPU/memory metrics over an appropriate observation window.",
+        "Downsize the instance shape (or reduce OCPUs) based on sustained utilization.",
+        "Implement autoscaling if workload is bursty.",
+        "Track cost savings and ensure performance SLOs remain met."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Sustained low CPU on large shapes indicates over-provisioning.",
+      "risk_if_ignored": "Unnecessary spend, resource waste, inefficient capacity planning.",
+      "verification": [
+        "Re-check utilization after resizing.",
+        "Verify latency/SLOs remain within targets."
+      ],
+      "pillars": [
+        "PERFORMANCE",
+        "COST"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "PERF-01",
+          "name": "Right-size resources to meet workload demands efficiently"
+        },
+        {
+          "standard": "CIS",
+          "id": "Cost-1",
+          "name": "Ensure resources are right-sized / avoid over-provisioning"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.1",
+          "name": "Operational procedures and responsibilities (resource management)"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+      "resource_id": "compute_worker_01",
+      "title": "Right-size compute resources to reduce waste and improve efficiency",
+      "steps": [
+        "Review CPU/memory metrics over an appropriate observation window.",
+        "Downsize the instance shape (or reduce OCPUs) based on sustained utilization.",
+        "Implement autoscaling if workload is bursty.",
+        "Track cost savings and ensure performance SLOs remain met."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Sustained low CPU on large shapes indicates over-provisioning.",
+      "risk_if_ignored": "Unnecessary spend, resource waste, inefficient capacity planning.",
+      "verification": [
+        "Re-check utilization after resizing.",
+        "Verify latency/SLOs remain within targets."
+      ],
+      "pillars": [
+        "PERFORMANCE",
+        "COST"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "PERF-01",
+          "name": "Right-size resources to meet workload demands efficiently"
+        },
+        {
+          "standard": "CIS",
+          "id": "Cost-1",
+          "name": "Ensure resources are right-sized / avoid over-provisioning"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.1",
+          "name": "Operational procedures and responsibilities (resource management)"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+      "resource_id": "adb_orders",
+      "title": "Enable database backups and recovery testing",
+      "steps": [
+        "Enable automated backups.",
+        "Define retention objectives aligned with RPO/RTO.",
+        "Perform periodic restore tests and document results."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Backups are essential for resilience and incident recovery.",
+      "risk_if_ignored": "Data loss after incident; inability to restore service within RTO.",
+      "verification": [
+        "Confirm backup schedule is active.",
+        "Execute a restore test to a staging environment."
+      ],
+      "pillars": [
+        "RELIABILITY",
+        "OPERATIONAL_EXCELLENCE"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "REL-02",
+          "name": "Backups & recovery testing"
+        },
+        {
+          "standard": "CIS",
+          "id": "DB-2",
+          "name": "Ensure database backups are enabled"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.12.3",
+          "name": "Backup"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.SEC.NET.RDP_PUBLIC",
+      "resource_id": "nsg_app",
+      "title": "Restrict RDP exposure (remove 0.0.0.0/0)",
+      "steps": [
+        "Remove inbound RDP (3389) from 0.0.0.0/0.",
+        "Allow access only from a bastion/VPN or trusted corporate IP ranges.",
+        "Enforce MFA and hardening on administrative access paths."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Public RDP is a frequent initial access vector.",
+      "risk_if_ignored": "Account compromise, ransomware, lateral movement into private network.",
+      "verification": [
+        "Confirm 3389 is not reachable from the internet.",
+        "Validate admin access works only through approved channels."
+      ],
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-04",
+          "name": "Limit inbound access / restrict management ports"
+        },
+        {
+          "standard": "CIS",
+          "id": "Network-1",
+          "name": "Restrict administrative ports from the internet"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.13.1",
+          "name": "Network security management"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+      "resource_id": "bucket_product_images",
+      "title": "Make bucket private and enable encryption (combined exposure)",
+      "steps": [
+        "Disable public access on the bucket.",
+        "Enable encryption at rest (provider-managed or customer-managed keys).",
+        "Apply least-privilege IAM policies to restrict access.",
+        "Enable bucket logging and versioning to improve auditability and recovery."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "A public bucket without encryption is a high-impact data exposure risk.",
+      "risk_if_ignored": "Sensitive data leakage, regulatory non-compliance, incident response complexity.",
+      "verification": [
+        "Confirm bucket public access is disabled.",
+        "Confirm encryption is enabled for new objects by default.",
+        "Review access logs for unexpected public reads.",
+        "Test object restore/rollback using versioning."
+      ],
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-01",
+          "name": "Prevent public exposure + encrypt data"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-1",
+          "name": "Ensure storage is not public; encryption enabled"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.10.1",
+          "name": "Cryptographic controls"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+      "resource_id": "bucket_tmp_export",
+      "title": "Make bucket private and enable encryption (combined exposure)",
+      "steps": [
+        "Disable public access on the bucket.",
+        "Enable encryption at rest (provider-managed or customer-managed keys).",
+        "Apply least-privilege IAM policies to restrict access.",
+        "Enable bucket logging and versioning to improve auditability and recovery."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "A public bucket without encryption is a high-impact data exposure risk.",
+      "risk_if_ignored": "Sensitive data leakage, regulatory non-compliance, incident response complexity.",
+      "verification": [
+        "Confirm bucket public access is disabled.",
+        "Confirm encryption is enabled for new objects by default.",
+        "Review access logs for unexpected public reads.",
+        "Test object restore/rollback using versioning."
+      ],
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-01",
+          "name": "Prevent public exposure + encrypt data"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-1",
+          "name": "Ensure storage is not public; encryption enabled"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.10.1",
+          "name": "Cryptographic controls"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+      "resource_id": "adb_orders",
+      "title": "Disable public endpoint and enforce private access for the database",
+      "steps": [
+        "Disable the public endpoint for the database.",
+        "Restrict access to private subnets / approved CIDRs only.",
+        "Require secure connectivity (private endpoints, VPN, bastion)."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Public database endpoints increase exposure to external threats.",
+      "risk_if_ignored": "Increased attack surface, brute-force attempts, data exfiltration risk.",
+      "verification": [
+        "Confirm the DB endpoint is not reachable from the public internet.",
+        "Validate only approved network paths can connect."
+      ],
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-03",
+          "name": "Reduce external exposure (private endpoints)"
+        },
+        {
+          "standard": "CIS",
+          "id": "Network-2",
+          "name": "Ensure databases are not publicly reachable"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.13.1",
+          "name": "Network security management"
+        }
+      ],
+      "source": "STATIC"
+    },
+    {
+      "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+      "resource_id": "adb_analytics",
+      "title": "Disable public endpoint and enforce private access for the database",
+      "steps": [
+        "Disable the public endpoint for the database.",
+        "Restrict access to private subnets / approved CIDRs only.",
+        "Require secure connectivity (private endpoints, VPN, bastion)."
+      ],
+      "responsibility": "CUSTOMER",
+      "rationale": "Public database endpoints increase exposure to external threats.",
+      "risk_if_ignored": "Increased attack surface, brute-force attempts, data exfiltration risk.",
+      "verification": [
+        "Confirm the DB endpoint is not reachable from the public internet.",
+        "Validate only approved network paths can connect."
+      ],
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-03",
+          "name": "Reduce external exposure (private endpoints)"
+        },
+        {
+          "standard": "CIS",
+          "id": "Network-2",
+          "name": "Ensure databases are not publicly reachable"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.13.1",
+          "name": "Network security management"
+        }
+      ],
+      "source": "STATIC"
+    }
+  ],
+  "graph_dot": "digraph G {\n\"vcn_main\" [label=\"vcn_main\\nvcn\"];\n\"subnet_public\" [label=\"subnet_public\\nsubnet\"];\n\"subnet_app\" [label=\"subnet_app\\nsubnet\"];\n\"subnet_db\" [label=\"subnet_db\\nsubnet\"];\n\"nsg_bastion\" [label=\"nsg_bastion\\nnetwork_security_group\"];\n\"nsg_app\" [label=\"nsg_app\\nnetwork_security_group\"];\n\"nsg_db\" [label=\"nsg_db\\nnetwork_security_group\"];\n\"compute_bastion_01\" [label=\"compute_bastion_01\\ncompute_instance\"];\n\"compute_web_01\" [label=\"compute_web_01\\ncompute_instance\"];\n\"compute_web_02\" [label=\"compute_web_02\\ncompute_instance\"];\n\"compute_worker_01\" [label=\"compute_worker_01\\ncompute_instance\"];\n\"bucket_orders\" [label=\"bucket_orders\\nobject_storage_bucket\"];\n\"bucket_product_images\" [label=\"bucket_product_images\\nobject_storage_bucket\"];\n\"bucket_tmp_export\" [label=\"bucket_tmp_export\\nobject_storage_bucket\"];\n\"bucket_audit_logs\" [label=\"bucket_audit_logs\\nobject_storage_bucket\"];\n\"adb_orders\" [label=\"adb_orders\\nautonomous_database\"];\n\"adb_analytics\" [label=\"adb_analytics\\nautonomous_database\"];\n\"lb_public\" [label=\"lb_public\\nload_balancer\"];\n\"apigw_main\" [label=\"apigw_main\\napi_gateway\"];\n\"user_alice\" [label=\"user_alice\\nuser\"];\n\"user_devops\" [label=\"user_devops\\nuser\"];\n\"subnet_public\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"subnet_app\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"subnet_app\" -> \"adb_orders\" [label=\"connects_to\"];\n\"subnet_app\" -> \"adb_analytics\" [label=\"connects_to\"];\n\"subnet_db\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"nsg_bastion\" -> \"compute_bastion_01\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_web_01\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_web_02\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_worker_01\" [label=\"protects\"];\n\"compute_bastion_01\" -> \"subnet_public\" [label=\"in_subnet\"];\n\"compute_web_01\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"compute_web_02\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"compute_worker_01\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"lb_public\" -> \"apigw_main\" [label=\"routes_to\"];\n\"apigw_main\" -> \"compute_web_01\" [label=\"routes_to\"];\n\"apigw_main\" -> \"compute_web_02\" [label=\"routes_to\"];\n\"user_alice\" -> \"bucket_orders\" [label=\"created\"];\n\"user_alice\" -> \"adb_orders\" [label=\"created\"];\n\"user_devops\" -> \"bucket_audit_logs\" [label=\"created\"];\n}",
+  "controls": {
+    "node_rules": [
+      {
+        "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+        "fn": "rule_bucket_public_no_encrypt_composite",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.DB.PUBLIC_AND_NO_ENCRYPT",
+        "fn": "rule_db_public_and_no_encrypt",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.BUCKET.PUBLIC",
+        "fn": "rule_public_object_storage_bucket",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
+        "fn": "rule_bucket_encryption",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+        "fn": "rule_bucket_logging_disabled",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+        "fn": "rule_bucket_versioning_disabled",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.DB.ENCRYPTION",
+        "fn": "rule_db_encryption",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+        "fn": "rule_db_public_endpoint",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+        "fn": "rule_db_backup_disabled",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
+        "fn": "rule_ssh_open_to_world",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.SEC.NET.RDP_PUBLIC",
+        "fn": "rule_rdp_open_to_world",
+        "module": "rules.security_rules"
+      },
+      {
+        "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+        "fn": "rule_right_sizing_compute",
+        "module": "rules.perf_rules"
+      }
+    ],
+    "graph_rules": [
+      {
+        "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+        "fn": "graph_rule_public_ssh_path_to_database",
+        "module": "rules.security_rules"
+      }
+    ],
+    "total": 13,
+    "triggered_counts": {
+      "OCI.SEC.BUCKET.LOGGING_DISABLED": 2,
+      "OCI.SEC.BUCKET.VERSIONING_DISABLED": 2,
+      "OCI.PERF.COMPUTE.RIGHTSIZING": 3,
+      "OCI.SEC.DB.BACKUP_DISABLED": 1,
+      "OCI.SEC.NET.RDP_PUBLIC": 1,
+      "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT": 2,
+      "OCI.SEC.DB.PUBLIC_ENDPOINT": 2
+    }
+  },
+  "baseline": {
+    "scenario": "31_[complex scenario]_aws_ecommerce_dynamic_t0",
+    "summary": {
+      "nodes": 20,
+      "edges": 19
+    },
+    "scores": {
+      "security_score": 0,
+      "performance_score": 86,
+      "global_score": 55,
+      "pillar_scores": {
+        "SECURITY": 0,
+        "RELIABILITY": 60,
+        "PERFORMANCE": 86,
+        "COST": 86,
+        "OPERATIONAL_EXCELLENCE": 86
+      },
+      "waf_weights": {
+        "SECURITY": 0.3,
+        "RELIABILITY": 0.2,
+        "PERFORMANCE": 0.15,
+        "COST": 0.15,
+        "OPERATIONAL_EXCELLENCE": 0.2
+      },
+      "penalties": [
+        {
+          "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+          "resource_id": "bucket_orders",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY",
+            "OPERATIONAL_EXCELLENCE"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "OPS-01",
+              "name": "Enable observability & audit logging"
+            },
+            {
+              "standard": "CIS",
+              "id": "Logging-1",
+              "name": "Ensure logging is enabled for storage access"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.4",
+              "name": "Logging and monitoring"
+            }
+          ],
+          "penalty": 7
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+          "resource_id": "bucket_orders",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "RELIABILITY",
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "REL-01",
+              "name": "Design for recovery (backups/versioning)"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-3",
+              "name": "Ensure object versioning is enabled where applicable"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.17.1",
+              "name": "Information security continuity"
+            }
+          ],
+          "penalty": 7
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+          "resource_id": "bucket_product_images",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY",
+            "OPERATIONAL_EXCELLENCE"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "OPS-01",
+              "name": "Enable observability & audit logging"
+            },
+            {
+              "standard": "CIS",
+              "id": "Logging-1",
+              "name": "Ensure logging is enabled for storage access"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.4",
+              "name": "Logging and monitoring"
+            }
+          ],
+          "penalty": 7
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+          "resource_id": "bucket_product_images",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+          "risk": 0.12,
+          "confidence": 1.0,
+          "pillars": [
+            "RELIABILITY",
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "REL-01",
+              "name": "Design for recovery (backups/versioning)"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-3",
+              "name": "Ensure object versioning is enabled where applicable"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.17.1",
+              "name": "Information security continuity"
+            }
+          ],
+          "penalty": 7
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_bastion_01",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 7
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_web_01",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 7
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_web_02",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 7
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_worker_01",
+          "severity": "MEDIUM",
+          "responsibility": "CUSTOMER",
+          "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+          "risk": 0.08,
+          "confidence": 1.0,
+          "pillars": [
+            "PERFORMANCE",
+            "COST"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "PERF-01",
+              "name": "Right-size resources to meet workload demands efficiently"
+            },
+            {
+              "standard": "CIS",
+              "id": "Cost-1",
+              "name": "Ensure resources are right-sized / avoid over-provisioning"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.1",
+              "name": "Operational procedures and responsibilities (resource management)"
+            }
+          ],
+          "penalty": 7
+        },
+        {
+          "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+          "resource_id": "adb_orders",
+          "severity": "HIGH",
+          "responsibility": "CUSTOMER",
+          "message": "Database backups are disabled. This increases recovery time and data loss risk.",
+          "risk": 0.25,
+          "confidence": 1.0,
+          "pillars": [
+            "RELIABILITY",
+            "OPERATIONAL_EXCELLENCE"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "REL-02",
+              "name": "Backups & recovery testing"
+            },
+            {
+              "standard": "CIS",
+              "id": "DB-2",
+              "name": "Ensure database backups are enabled"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.12.3",
+              "name": "Backup"
+            }
+          ],
+          "penalty": 15
+        },
+        {
+          "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
+          "resource_id": "nsg_bastion",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-04",
+              "name": "Limit inbound access / restrict management ports"
+            },
+            {
+              "standard": "CIS",
+              "id": "Network-1",
+              "name": "Restrict administrative ports from the internet"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25
+        },
+        {
+          "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
+          "resource_id": "nsg_app",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-04",
+              "name": "Limit inbound access / restrict management ports"
+            },
+            {
+              "standard": "CIS",
+              "id": "Network-1",
+              "name": "Restrict administrative ports from the internet"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25
+        },
+        {
+          "rule_id": "OCI.SEC.NET.RDP_PUBLIC",
+          "resource_id": "nsg_app",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "RDP port 3389 is open to the internet (0.0.0.0/0). This increases compromise risk.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-04",
+              "name": "Limit inbound access / restrict management ports"
+            },
+            {
+              "standard": "CIS",
+              "id": "Network-1",
+              "name": "Restrict administrative ports from the internet"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+          "resource_id": "bucket_orders",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-01",
+              "name": "Prevent public exposure + encrypt data"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-1",
+              "name": "Ensure storage is not public; encryption enabled"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.10.1",
+              "name": "Cryptographic controls"
+            }
+          ],
+          "penalty": 25
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+          "resource_id": "bucket_product_images",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-01",
+              "name": "Prevent public exposure + encrypt data"
+            },
+            {
+              "standard": "CIS",
+              "id": "Storage-1",
+              "name": "Ensure storage is not public; encryption enabled"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.10.1",
+              "name": "Cryptographic controls"
+            }
+          ],
+          "penalty": 25
+        },
+        {
+          "rule_id": "OCI.SEC.DB.PUBLIC_AND_NO_ENCRYPT",
+          "resource_id": "adb_orders",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "Database is publicly reachable and encryption is disabled. This is a critical exposure.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-03",
+              "name": "Reduce external exposure + encrypt data"
+            },
+            {
+              "standard": "CIS",
+              "id": "DB-1",
+              "name": "Ensure DB not public and encrypted"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25
+        },
+        {
+          "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+          "resource_id": "adb_analytics",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-03",
+              "name": "Reduce external exposure (private endpoints)"
+            },
+            {
+              "standard": "CIS",
+              "id": "Network-2",
+              "name": "Ensure databases are not publicly reachable"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25
+        },
+        {
+          "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+          "resource_id": "adb_orders",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY",
+            "RELIABILITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-07",
+              "name": "Minimize exposure paths / reduce attack surface"
+            },
+            {
+              "standard": "CIS",
+              "id": "Network-1",
+              "name": "Restrict administrative ports and exposure"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25
+        },
+        {
+          "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+          "resource_id": "adb_analytics",
+          "severity": "CRITICAL",
+          "responsibility": "CUSTOMER",
+          "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
+          "risk": 0.4,
+          "confidence": 1.0,
+          "pillars": [
+            "SECURITY",
+            "RELIABILITY"
+          ],
+          "references": [
+            {
+              "standard": "WAF",
+              "id": "SEC-07",
+              "name": "Minimize exposure paths / reduce attack surface"
+            },
+            {
+              "standard": "CIS",
+              "id": "Network-1",
+              "name": "Restrict administrative ports and exposure"
+            },
+            {
+              "standard": "ISO27001",
+              "id": "A.13.1",
+              "name": "Network security management"
+            }
+          ],
+          "penalty": 25
+        }
+      ],
+      "penalties_by_pillar": {
+        "SECURITY": [
+          {
+            "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+            "resource_id": "bucket_orders",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+            "risk": 0.12,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY",
+              "OPERATIONAL_EXCELLENCE"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "OPS-01",
+                "name": "Enable observability & audit logging"
+              },
+              {
+                "standard": "CIS",
+                "id": "Logging-1",
+                "name": "Ensure logging is enabled for storage access"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.4",
+                "name": "Logging and monitoring"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+            "resource_id": "bucket_orders",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+            "risk": 0.12,
+            "confidence": 1.0,
+            "pillars": [
+              "RELIABILITY",
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "REL-01",
+                "name": "Design for recovery (backups/versioning)"
+              },
+              {
+                "standard": "CIS",
+                "id": "Storage-3",
+                "name": "Ensure object versioning is enabled where applicable"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.17.1",
+                "name": "Information security continuity"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+            "resource_id": "bucket_product_images",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+            "risk": 0.12,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY",
+              "OPERATIONAL_EXCELLENCE"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "OPS-01",
+                "name": "Enable observability & audit logging"
+              },
+              {
+                "standard": "CIS",
+                "id": "Logging-1",
+                "name": "Ensure logging is enabled for storage access"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.4",
+                "name": "Logging and monitoring"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+            "resource_id": "bucket_product_images",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+            "risk": 0.12,
+            "confidence": 1.0,
+            "pillars": [
+              "RELIABILITY",
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "REL-01",
+                "name": "Design for recovery (backups/versioning)"
+              },
+              {
+                "standard": "CIS",
+                "id": "Storage-3",
+                "name": "Ensure object versioning is enabled where applicable"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.17.1",
+                "name": "Information security continuity"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
+            "resource_id": "nsg_bastion",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk.",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-04",
+                "name": "Limit inbound access / restrict management ports"
+              },
+              {
+                "standard": "CIS",
+                "id": "Network-1",
+                "name": "Restrict administrative ports from the internet"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.13.1",
+                "name": "Network security management"
+              }
+            ],
+            "penalty": 25.0
+          },
+          {
+            "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
+            "resource_id": "nsg_app",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "SSH port 22 is open to the internet (0.0.0.0/0). This increases brute-force attack risk.",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-04",
+                "name": "Limit inbound access / restrict management ports"
+              },
+              {
+                "standard": "CIS",
+                "id": "Network-1",
+                "name": "Restrict administrative ports from the internet"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.13.1",
+                "name": "Network security management"
+              }
+            ],
+            "penalty": 25.0
+          },
+          {
+            "rule_id": "OCI.SEC.NET.RDP_PUBLIC",
+            "resource_id": "nsg_app",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "RDP port 3389 is open to the internet (0.0.0.0/0). This increases compromise risk.",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-04",
+                "name": "Limit inbound access / restrict management ports"
+              },
+              {
+                "standard": "CIS",
+                "id": "Network-1",
+                "name": "Restrict administrative ports from the internet"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.13.1",
+                "name": "Network security management"
+              }
+            ],
+            "penalty": 25.0
+          },
+          {
+            "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+            "resource_id": "bucket_orders",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-01",
+                "name": "Prevent public exposure + encrypt data"
+              },
+              {
+                "standard": "CIS",
+                "id": "Storage-1",
+                "name": "Ensure storage is not public; encryption enabled"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.10.1",
+                "name": "Cryptographic controls"
+              }
+            ],
+            "penalty": 25.0
+          },
+          {
+            "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+            "resource_id": "bucket_product_images",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-01",
+                "name": "Prevent public exposure + encrypt data"
+              },
+              {
+                "standard": "CIS",
+                "id": "Storage-1",
+                "name": "Ensure storage is not public; encryption enabled"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.10.1",
+                "name": "Cryptographic controls"
+              }
+            ],
+            "penalty": 25.0
+          },
+          {
+            "rule_id": "OCI.SEC.DB.PUBLIC_AND_NO_ENCRYPT",
+            "resource_id": "adb_orders",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "Database is publicly reachable and encryption is disabled. This is a critical exposure.",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-03",
+                "name": "Reduce external exposure + encrypt data"
+              },
+              {
+                "standard": "CIS",
+                "id": "DB-1",
+                "name": "Ensure DB not public and encrypted"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.13.1",
+                "name": "Network security management"
+              }
+            ],
+            "penalty": 25.0
+          },
+          {
+            "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+            "resource_id": "adb_analytics",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-03",
+                "name": "Reduce external exposure (private endpoints)"
+              },
+              {
+                "standard": "CIS",
+                "id": "Network-2",
+                "name": "Ensure databases are not publicly reachable"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.13.1",
+                "name": "Network security management"
+              }
+            ],
+            "penalty": 25.0
+          },
+          {
+            "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+            "resource_id": "adb_orders",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY",
+              "RELIABILITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-07",
+                "name": "Minimize exposure paths / reduce attack surface"
+              },
+              {
+                "standard": "CIS",
+                "id": "Network-1",
+                "name": "Restrict administrative ports and exposure"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.13.1",
+                "name": "Network security management"
+              }
+            ],
+            "penalty": 12.5
+          },
+          {
+            "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+            "resource_id": "adb_analytics",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY",
+              "RELIABILITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-07",
+                "name": "Minimize exposure paths / reduce attack surface"
+              },
+              {
+                "standard": "CIS",
+                "id": "Network-1",
+                "name": "Restrict administrative ports and exposure"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.13.1",
+                "name": "Network security management"
+              }
+            ],
+            "penalty": 12.5
+          }
+        ],
+        "RELIABILITY": [
+          {
+            "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+            "resource_id": "bucket_orders",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+            "risk": 0.12,
+            "confidence": 1.0,
+            "pillars": [
+              "RELIABILITY",
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "REL-01",
+                "name": "Design for recovery (backups/versioning)"
+              },
+              {
+                "standard": "CIS",
+                "id": "Storage-3",
+                "name": "Ensure object versioning is enabled where applicable"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.17.1",
+                "name": "Information security continuity"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+            "resource_id": "bucket_product_images",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
+            "risk": 0.12,
+            "confidence": 1.0,
+            "pillars": [
+              "RELIABILITY",
+              "SECURITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "REL-01",
+                "name": "Design for recovery (backups/versioning)"
+              },
+              {
+                "standard": "CIS",
+                "id": "Storage-3",
+                "name": "Ensure object versioning is enabled where applicable"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.17.1",
+                "name": "Information security continuity"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+            "resource_id": "adb_orders",
+            "severity": "HIGH",
+            "responsibility": "CUSTOMER",
+            "message": "Database backups are disabled. This increases recovery time and data loss risk.",
+            "risk": 0.25,
+            "confidence": 1.0,
+            "pillars": [
+              "RELIABILITY",
+              "OPERATIONAL_EXCELLENCE"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "REL-02",
+                "name": "Backups & recovery testing"
+              },
+              {
+                "standard": "CIS",
+                "id": "DB-2",
+                "name": "Ensure database backups are enabled"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.3",
+                "name": "Backup"
+              }
+            ],
+            "penalty": 7.5
+          },
+          {
+            "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+            "resource_id": "adb_orders",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY",
+              "RELIABILITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-07",
+                "name": "Minimize exposure paths / reduce attack surface"
+              },
+              {
+                "standard": "CIS",
+                "id": "Network-1",
+                "name": "Restrict administrative ports and exposure"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.13.1",
+                "name": "Network security management"
+              }
+            ],
+            "penalty": 12.5
+          },
+          {
+            "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+            "resource_id": "adb_analytics",
+            "severity": "CRITICAL",
+            "responsibility": "CUSTOMER",
+            "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
+            "risk": 0.4,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY",
+              "RELIABILITY"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "SEC-07",
+                "name": "Minimize exposure paths / reduce attack surface"
+              },
+              {
+                "standard": "CIS",
+                "id": "Network-1",
+                "name": "Restrict administrative ports and exposure"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.13.1",
+                "name": "Network security management"
+              }
+            ],
+            "penalty": 12.5
+          }
+        ],
+        "PERFORMANCE": [
+          {
+            "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+            "resource_id": "compute_bastion_01",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+            "risk": 0.08,
+            "confidence": 1.0,
+            "pillars": [
+              "PERFORMANCE",
+              "COST"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "PERF-01",
+                "name": "Right-size resources to meet workload demands efficiently"
+              },
+              {
+                "standard": "CIS",
+                "id": "Cost-1",
+                "name": "Ensure resources are right-sized / avoid over-provisioning"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.1",
+                "name": "Operational procedures and responsibilities (resource management)"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+            "resource_id": "compute_web_01",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+            "risk": 0.08,
+            "confidence": 1.0,
+            "pillars": [
+              "PERFORMANCE",
+              "COST"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "PERF-01",
+                "name": "Right-size resources to meet workload demands efficiently"
+              },
+              {
+                "standard": "CIS",
+                "id": "Cost-1",
+                "name": "Ensure resources are right-sized / avoid over-provisioning"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.1",
+                "name": "Operational procedures and responsibilities (resource management)"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+            "resource_id": "compute_web_02",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+            "risk": 0.08,
+            "confidence": 1.0,
+            "pillars": [
+              "PERFORMANCE",
+              "COST"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "PERF-01",
+                "name": "Right-size resources to meet workload demands efficiently"
+              },
+              {
+                "standard": "CIS",
+                "id": "Cost-1",
+                "name": "Ensure resources are right-sized / avoid over-provisioning"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.1",
+                "name": "Operational procedures and responsibilities (resource management)"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+            "resource_id": "compute_worker_01",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+            "risk": 0.08,
+            "confidence": 1.0,
+            "pillars": [
+              "PERFORMANCE",
+              "COST"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "PERF-01",
+                "name": "Right-size resources to meet workload demands efficiently"
+              },
+              {
+                "standard": "CIS",
+                "id": "Cost-1",
+                "name": "Ensure resources are right-sized / avoid over-provisioning"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.1",
+                "name": "Operational procedures and responsibilities (resource management)"
+              }
+            ],
+            "penalty": 3.5
+          }
+        ],
+        "COST": [
+          {
+            "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+            "resource_id": "compute_bastion_01",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+            "risk": 0.08,
+            "confidence": 1.0,
+            "pillars": [
+              "PERFORMANCE",
+              "COST"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "PERF-01",
+                "name": "Right-size resources to meet workload demands efficiently"
+              },
+              {
+                "standard": "CIS",
+                "id": "Cost-1",
+                "name": "Ensure resources are right-sized / avoid over-provisioning"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.1",
+                "name": "Operational procedures and responsibilities (resource management)"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+            "resource_id": "compute_web_01",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+            "risk": 0.08,
+            "confidence": 1.0,
+            "pillars": [
+              "PERFORMANCE",
+              "COST"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "PERF-01",
+                "name": "Right-size resources to meet workload demands efficiently"
+              },
+              {
+                "standard": "CIS",
+                "id": "Cost-1",
+                "name": "Ensure resources are right-sized / avoid over-provisioning"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.1",
+                "name": "Operational procedures and responsibilities (resource management)"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+            "resource_id": "compute_web_02",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+            "risk": 0.08,
+            "confidence": 1.0,
+            "pillars": [
+              "PERFORMANCE",
+              "COST"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "PERF-01",
+                "name": "Right-size resources to meet workload demands efficiently"
+              },
+              {
+                "standard": "CIS",
+                "id": "Cost-1",
+                "name": "Ensure resources are right-sized / avoid over-provisioning"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.1",
+                "name": "Operational procedures and responsibilities (resource management)"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+            "resource_id": "compute_worker_01",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
+            "risk": 0.08,
+            "confidence": 1.0,
+            "pillars": [
+              "PERFORMANCE",
+              "COST"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "PERF-01",
+                "name": "Right-size resources to meet workload demands efficiently"
+              },
+              {
+                "standard": "CIS",
+                "id": "Cost-1",
+                "name": "Ensure resources are right-sized / avoid over-provisioning"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.1",
+                "name": "Operational procedures and responsibilities (resource management)"
+              }
+            ],
+            "penalty": 3.5
+          }
+        ],
+        "OPERATIONAL_EXCELLENCE": [
+          {
+            "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+            "resource_id": "bucket_orders",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+            "risk": 0.12,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY",
+              "OPERATIONAL_EXCELLENCE"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "OPS-01",
+                "name": "Enable observability & audit logging"
+              },
+              {
+                "standard": "CIS",
+                "id": "Logging-1",
+                "name": "Ensure logging is enabled for storage access"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.4",
+                "name": "Logging and monitoring"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+            "resource_id": "bucket_product_images",
+            "severity": "MEDIUM",
+            "responsibility": "CUSTOMER",
+            "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
+            "risk": 0.12,
+            "confidence": 1.0,
+            "pillars": [
+              "SECURITY",
+              "OPERATIONAL_EXCELLENCE"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "OPS-01",
+                "name": "Enable observability & audit logging"
+              },
+              {
+                "standard": "CIS",
+                "id": "Logging-1",
+                "name": "Ensure logging is enabled for storage access"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.4",
+                "name": "Logging and monitoring"
+              }
+            ],
+            "penalty": 3.5
+          },
+          {
+            "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+            "resource_id": "adb_orders",
+            "severity": "HIGH",
+            "responsibility": "CUSTOMER",
+            "message": "Database backups are disabled. This increases recovery time and data loss risk.",
+            "risk": 0.25,
+            "confidence": 1.0,
+            "pillars": [
+              "RELIABILITY",
+              "OPERATIONAL_EXCELLENCE"
+            ],
+            "references": [
+              {
+                "standard": "WAF",
+                "id": "REL-02",
+                "name": "Backups & recovery testing"
+              },
+              {
+                "standard": "CIS",
+                "id": "DB-2",
+                "name": "Ensure database backups are enabled"
+              },
+              {
+                "standard": "ISO27001",
+                "id": "A.12.3",
+                "name": "Backup"
+              }
+            ],
+            "penalty": 7.5
+          }
+        ]
+      }
+    }
+  },
+  "delta": {
+    "resources": {
+      "added": [
+        "bucket_tmp_export"
+      ],
+      "removed": [],
+      "changed": [
+        {
+          "resource_id": "adb_orders",
+          "changes": [
+            {
+              "field": "encrypted",
+              "before": false,
+              "after": true
+            }
+          ]
+        },
+        {
+          "resource_id": "bucket_orders",
+          "changes": [
+            {
+              "field": "encrypted",
+              "before": false,
+              "after": true
+            },
+            {
+              "field": "logging_enabled",
+              "before": false,
+              "after": true
+            },
+            {
+              "field": "public",
+              "before": true,
+              "after": false
+            },
+            {
+              "field": "versioning",
+              "before": false,
+              "after": true
+            }
+          ]
+        },
+        {
+          "resource_id": "compute_bastion_01",
+          "changes": [
+            {
+              "field": "avg_cpu_utilization",
+              "before": 1.1,
+              "after": 9.0
+            },
+            {
+              "field": "memory_gb",
+              "before": 16,
+              "after": 8
+            },
+            {
+              "field": "ocpus",
+              "before": 4,
+              "after": 2
+            },
+            {
+              "field": "shape",
+              "before": "t3.large",
+              "after": "t3.medium"
+            }
+          ]
+        },
+        {
+          "resource_id": "compute_web_01",
+          "changes": [
+            {
+              "field": "avg_cpu_utilization",
+              "before": 2.0,
+              "after": 2.2
+            }
+          ]
+        },
+        {
+          "resource_id": "compute_web_02",
+          "changes": [
+            {
+              "field": "avg_cpu_utilization",
+              "before": 2.4,
+              "after": 2.7
+            }
+          ]
+        },
+        {
+          "resource_id": "compute_worker_01",
+          "changes": [
+            {
+              "field": "avg_cpu_utilization",
+              "before": 3.2,
+              "after": 3.8
+            }
+          ]
+        },
+        {
+          "resource_id": "nsg_app",
+          "changes": [
+            {
+              "field": "ingress_rules",
+              "before": [
+                {
+                  "protocol": "tcp",
+                  "port": 443,
+                  "source": "0.0.0.0/0"
+                },
+                {
+                  "protocol": "tcp",
+                  "port": 22,
+                  "source": "0.0.0.0/0"
+                },
+                {
+                  "protocol": "tcp",
+                  "port": 3389,
+                  "source": "0.0.0.0/0"
+                }
+              ],
+              "after": [
+                {
+                  "protocol": "tcp",
+                  "port": 443,
+                  "source": "0.0.0.0/0"
+                },
+                {
+                  "protocol": "tcp",
+                  "port": 3389,
+                  "source": "0.0.0.0/0"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "resource_id": "nsg_bastion",
+          "changes": [
+            {
+              "field": "ingress_rules",
+              "before": [
+                {
+                  "protocol": "tcp",
+                  "port": 22,
+                  "source": "0.0.0.0/0"
+                }
+              ],
+              "after": [
+                {
+                  "protocol": "tcp",
+                  "port": 22,
+                  "source": "203.0.113.10/32"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "baseline_count": 20,
+      "current_count": 21
+    },
+    "findings": {
+      "added": [
+        {
+          "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+          "resource_id": "bucket_tmp_export"
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+          "resource_id": "bucket_tmp_export"
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+          "resource_id": "bucket_tmp_export"
+        },
+        {
+          "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+          "resource_id": "adb_orders"
+        }
+      ],
+      "removed": [
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_bastion_01"
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+          "resource_id": "bucket_orders"
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+          "resource_id": "bucket_orders"
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+          "resource_id": "bucket_orders"
+        },
+        {
+          "rule_id": "OCI.SEC.DB.PUBLIC_AND_NO_ENCRYPT",
+          "resource_id": "adb_orders"
+        },
+        {
+          "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
+          "resource_id": "nsg_app"
+        },
+        {
+          "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
+          "resource_id": "nsg_bastion"
+        },
+        {
+          "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+          "resource_id": "adb_analytics"
+        },
+        {
+          "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
+          "resource_id": "adb_orders"
+        }
+      ],
+      "persisted": [
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_web_01"
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_web_02"
+        },
+        {
+          "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
+          "resource_id": "compute_worker_01"
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
+          "resource_id": "bucket_product_images"
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
+          "resource_id": "bucket_product_images"
+        },
+        {
+          "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
+          "resource_id": "bucket_product_images"
+        },
+        {
+          "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
+          "resource_id": "adb_orders"
+        },
+        {
+          "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
+          "resource_id": "adb_analytics"
+        },
+        {
+          "rule_id": "OCI.SEC.NET.RDP_PUBLIC",
+          "resource_id": "nsg_app"
+        }
+      ],
+      "baseline_count": 18,
+      "current_count": 13
+    },
+    "scores": {
+      "baseline_global": 55,
+      "current_global": 61,
+      "delta_global": 6
+    }
+  }
 }

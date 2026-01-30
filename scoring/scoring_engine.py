@@ -63,7 +63,8 @@ class ScoringEngine:
 
         for f in findings:
             base_penalty = SEVERITY_PENALTY.get(getattr(f, "severity", "MEDIUM"), 7)
-
+            if getattr(f, "suppressed", False):
+                continue
             pillars = getattr(f, "pillars", None)
             if not pillars or not isinstance(pillars, list) or len(pillars) == 0:
                 pillars = [DEFAULT_PILLAR]

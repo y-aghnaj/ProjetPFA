@@ -64,16 +64,10 @@ def _finding_key(f: Dict[str, Any]) -> Tuple[str, str]:
     return (str(f.get("rule_id")), str(f.get("resource_id")))
 
 
-def diff_findings(
-    baseline_findings: List[Dict[str, Any]],
-    current_findings: List[Dict[str, Any]],
-) -> Dict[str, Any]:
-    """
-    Diff findings (rule_id, resource_id).
-    Returns added/removed/persisted.
-    """
-    bset = {_finding_key(f) for f in baseline_findings}
-    cset = {_finding_key(f) for f in current_findings}
+def diff_findings(baseline_findings, current_findings) -> Dict[str, Any]:
+    # ✅ ignore suppressed findings (covered by composites)
+    bset = {_finding_key(f) for f in baseline_findings if not f.get("suppressed", False)}
+    cset = {_finding_key(f) for f in current_findings if not f.get("suppressed", False)}
 
     added = sorted(list(cset - bset))
     removed = sorted(list(bset - cset))
@@ -86,3 +80,4 @@ def diff_findings(
         "baseline_count": len(bset),
         "current_count": len(cset),
     }
+

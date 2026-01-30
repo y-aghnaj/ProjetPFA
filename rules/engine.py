@@ -51,37 +51,37 @@ GraphRule = Callable[..., List[Finding]]
 
 
 class RuleEngine:
-    """
-    Supports:
-      - node rules: rule(node_id, attrs) OR rule(node_id, attrs, graph)
-      - graph rules: rule(graph) -> list[Finding]
-    Also supports post-processing for composite coverage/suppression.
-    """
-
     def __init__(self):
-        self.node_rules: List[NodeRule] = []
-        self.graph_rules: List[GraphRule] = []
+        self.node_rules: List[tuple[str, NodeRule]] = []
+        self.graph_rules: List[tuple[str, GraphRule]] = []
 
-    def register(self, rule_fn: Union[NodeRule, GraphRule], kind: str = "node"):
-        if kind not in ("node", "graph"):
-            raise ValueError("kind must be 'node' or 'graph'")
+    def register(self, rule_fn, kind: str = "node", rule_id: str | None = None):
+        rid = rule_id or getattr(rule_fn, "RULE_ID", rule_fn.__name__)
         if kind == "node":
-            self.node_rules.append(rule_fn)  # type: ignore
+            self.node_rules.append((rid, rule_fn))
         else:
-            self.graph_rules.append(rule_fn)  # type: ignore
+            self.graph_rules.append((rid, rule_fn))
+
+    def catalog(self) -> dict:
+        return {
+            "node_rules": [{"rule_id": rid, "fn": fn.__name__, "module": fn.__module__} for rid, fn in self.node_rules],
+            "graph_rules": [{"rule_id": rid, "fn": fn.__name__, "module": fn.__module__} for rid, fn in self.graph_rules],
+            "total": len(self.node_rules) + len(self.graph_rules),
+        }
+
 
     def run(self, graph) -> List[Finding]:
         findings: List[Finding] = []
 
         # 1) Node-based rules (backward compatible signatures)
         for node_id, attrs in graph.nodes(data=True):
-            for rule in self.node_rules:
+            for rid, rule in self.node_rules:
                 f = self._call_node_rule(rule, node_id, attrs, graph)
                 if f is not None:
                     findings.append(f)
 
         # 2) Graph-based rules
-        for grule in self.graph_rules:
+        for rid, grule in self.graph_rules:
             out = grule(graph)
             if out:
                 findings.extend(out)

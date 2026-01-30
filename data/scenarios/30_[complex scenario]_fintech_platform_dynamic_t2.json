@@ -1,0 +1,184 @@
+{
+  "account": { "provider": "OCI", "tenancy": "demo-tenancy", "region": "eu-frankfurt-1" },
+  "meta": {
+    "scenario_family": "fintech_platform_dynamic",
+    "snapshot": "t2",
+    "captured_at": "2026-01-26T18:02:00+01:00",
+    "tags": ["complex scenario", "prod", "fintech", "dynamic"],
+    "story": "Most issues fixed: storage hardened, DB no longer public, backups enabled, remote access restricted, compute rightsized."
+  },
+  "resources": [
+    { "id": "vcn_main", "type": "vcn", "name": "vcn-main", "cidr": "10.0.0.0/16", "tags": { "environment": "prod", "owner": "platform" } },
+
+    { "id": "subnet_public", "type": "subnet", "name": "subnet-public", "cidr": "10.0.1.0/24", "tags": { "environment": "prod", "owner": "platform" } },
+    { "id": "subnet_app", "type": "subnet", "name": "subnet-app", "cidr": "10.0.2.0/24", "tags": { "environment": "prod", "owner": "platform" } },
+    { "id": "subnet_db", "type": "subnet", "name": "subnet-db", "cidr": "10.0.3.0/24", "tags": { "environment": "prod", "owner": "platform" } },
+
+    {
+      "id": "nsg_bastion",
+      "type": "network_security_group",
+      "name": "bastion-nsg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 22, "source": "203.0.113.10/32" }
+      ],
+      "tags": { "environment": "prod", "owner": "secops" }
+    },
+    {
+      "id": "nsg_app",
+      "type": "network_security_group",
+      "name": "app-nsg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 443, "source": "0.0.0.0/0" },
+        { "protocol": "tcp", "port": 22, "source": "10.0.1.0/24" }
+      ],
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+    {
+      "id": "nsg_db",
+      "type": "network_security_group",
+      "name": "db-nsg",
+      "ingress_rules": [
+        { "protocol": "tcp", "port": 1521, "source": "10.0.2.0/24" }
+      ],
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+
+    {
+      "id": "compute_bastion_01",
+      "type": "compute_instance",
+      "name": "bastion-01",
+      "shape": "VM.Standard.E4.Flex",
+      "ocpus": 2,
+      "memory_gb": 16,
+      "avg_cpu_utilization": 12.0,
+      "tags": { "environment": "prod", "owner": "secops" }
+    },
+    {
+      "id": "compute_api_01",
+      "type": "compute_instance",
+      "name": "api-01",
+      "shape": "VM.Standard.E4.Flex",
+      "ocpus": 4,
+      "memory_gb": 32,
+      "avg_cpu_utilization": 18.0,
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+    {
+      "id": "compute_api_02",
+      "type": "compute_instance",
+      "name": "api-02",
+      "shape": "VM.Standard.E4.Flex",
+      "ocpus": 4,
+      "memory_gb": 32,
+      "avg_cpu_utilization": 16.0,
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+    {
+      "id": "compute_worker_01",
+      "type": "compute_instance",
+      "name": "worker-01",
+      "shape": "VM.Standard.E4.Flex",
+      "ocpus": 2,
+      "memory_gb": 16,
+      "avg_cpu_utilization": 15.0,
+      "tags": { "environment": "prod", "owner": "platform" }
+    },
+
+    {
+      "id": "bucket_payments",
+      "type": "object_storage_bucket",
+      "name": "payments-bucket",
+      "compartment": "comp_finance",
+      "public": false,
+      "encrypted": true,
+      "logging_enabled": true,
+      "versioning": true,
+      "tags": { "environment": "prod", "owner": "finops-sec", "data_classification": "confidential" }
+    },
+    {
+      "id": "bucket_customer_exports",
+      "type": "object_storage_bucket",
+      "name": "customer-exports",
+      "compartment": "comp_finance",
+      "public": false,
+      "encrypted": true,
+      "logging_enabled": true,
+      "versioning": true,
+      "tags": { "environment": "prod", "owner": "data", "data_classification": "restricted" }
+    },
+    {
+      "id": "bucket_tmp_migration",
+      "type": "object_storage_bucket",
+      "name": "tmp-migration",
+      "compartment": "comp_finance",
+      "public": false,
+      "encrypted": true,
+      "logging_enabled": true,
+      "versioning": true,
+      "tags": { "environment": "prod", "owner": "data", "data_classification": "internal" }
+    },
+    {
+      "id": "bucket_audit_logs",
+      "type": "object_storage_bucket",
+      "name": "audit-logs",
+      "compartment": "comp_security",
+      "public": false,
+      "encrypted": true,
+      "logging_enabled": true,
+      "versioning": true,
+      "tags": { "environment": "prod", "owner": "secops", "data_classification": "restricted" }
+    },
+
+    {
+      "id": "adb_payments",
+      "type": "autonomous_database",
+      "name": "payments-adb",
+      "encrypted": true,
+      "public_endpoint": false,
+      "backups_enabled": true,
+      "tags": { "environment": "prod", "owner": "db-team", "data_classification": "confidential" }
+    },
+    {
+      "id": "adb_reporting",
+      "type": "autonomous_database",
+      "name": "reporting-adb",
+      "encrypted": true,
+      "public_endpoint": false,
+      "backups_enabled": true,
+      "tags": { "environment": "prod", "owner": "data", "data_classification": "internal" }
+    },
+
+    { "id": "lb_public", "type": "load_balancer", "name": "public-lb", "tags": { "environment": "prod", "owner": "platform" } },
+    { "id": "apigw_main", "type": "api_gateway", "name": "api-gw", "tags": { "environment": "prod", "owner": "platform" } },
+
+    { "id": "user_alice", "type": "user", "name": "alice", "tags": { "team": "platform" } },
+    { "id": "user_devops", "type": "user", "name": "devops", "tags": { "team": "secops" } }
+  ],
+  "relations": [
+    { "from": "subnet_public", "to": "vcn_main", "relation": "in_vcn" },
+    { "from": "subnet_app", "to": "vcn_main", "relation": "in_vcn" },
+    { "from": "subnet_db", "to": "vcn_main", "relation": "in_vcn" },
+
+    { "from": "nsg_bastion", "to": "compute_bastion_01", "relation": "protects" },
+    { "from": "compute_bastion_01", "to": "subnet_public", "relation": "in_subnet" },
+
+    { "from": "nsg_app", "to": "compute_api_01", "relation": "protects" },
+    { "from": "nsg_app", "to": "compute_api_02", "relation": "protects" },
+    { "from": "nsg_app", "to": "compute_worker_01", "relation": "protects" },
+
+    { "from": "compute_api_01", "to": "subnet_app", "relation": "in_subnet" },
+    { "from": "compute_api_02", "to": "subnet_app", "relation": "in_subnet" },
+    { "from": "compute_worker_01", "to": "subnet_app", "relation": "in_subnet" },
+
+    { "from": "subnet_app", "to": "adb_payments", "relation": "connects_to" },
+    { "from": "subnet_app", "to": "adb_reporting", "relation": "connects_to" },
+
+    { "from": "lb_public", "to": "apigw_main", "relation": "routes_to" },
+    { "from": "apigw_main", "to": "compute_api_01", "relation": "routes_to" },
+    { "from": "apigw_main", "to": "compute_api_02", "relation": "routes_to" },
+
+    { "from": "user_alice", "to": "bucket_payments", "relation": "created" },
+    { "from": "user_alice", "to": "adb_payments", "relation": "created" },
+    { "from": "user_devops", "to": "bucket_audit_logs", "relation": "created" }
+  ]
+}
