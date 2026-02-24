@@ -14,10 +14,9 @@ def cached_llm_report(report_data: dict, model: str) -> str:
     return generate_llm_report_from_dict(report_data, model_name=model)
 
 
-st.set_page_config(page_title="Cloud Governance Audit (OCI Case Study)", layout="wide")
+st.set_page_config(page_title="Cloud Governance Audit ", layout="wide")
 
-st.title("Cloud Governance Audit Framework (OCI Case Study)")
-st.caption("Graph-based assessment + rule engine + WAF-aligned scoring + explainability + local LLM reporting")
+st.title("Cloud Governance Audit Framework")
 
 # ---- Sidebar controls ----
 st.sidebar.header("Run settings")
@@ -46,32 +45,6 @@ llm_model = st.sidebar.text_input("Ollama model", value="llama3.1")
 st.sidebar.subheader("Recommendations")
 use_llm_recos = st.sidebar.checkbox("Generate recommendations with LLM", value=False)
 
-st.sidebar.subheader("WAF weights (optional)")
-use_custom_waf = st.sidebar.checkbox("Customize WAF pillar weights", value=False)
-
-default_w = {
-    "SECURITY": 0.30,
-    "RELIABILITY": 0.20,
-    "PERFORMANCE": 0.15,
-    "COST": 0.15,
-    "OPERATIONAL_EXCELLENCE": 0.20,
-}
-
-waf_weights = None
-if use_custom_waf:
-    w_security = st.sidebar.slider("SECURITY", 0.0, 1.0, default_w["SECURITY"], 0.05)
-    w_reliability = st.sidebar.slider("RELIABILITY", 0.0, 1.0, default_w["RELIABILITY"], 0.05)
-    w_performance = st.sidebar.slider("PERFORMANCE", 0.0, 1.0, default_w["PERFORMANCE"], 0.05)
-    w_cost = st.sidebar.slider("COST", 0.0, 1.0, default_w["COST"], 0.05)
-    w_ops = st.sidebar.slider("OPERATIONAL_EXCELLENCE", 0.0, 1.0, default_w["OPERATIONAL_EXCELLENCE"], 0.05)
-    waf_weights = {
-        "SECURITY": w_security,
-        "RELIABILITY": w_reliability,
-        "PERFORMANCE": w_performance,
-        "COST": w_cost,
-        "OPERATIONAL_EXCELLENCE": w_ops,
-    }
-
 run_btn = st.sidebar.button("Run Audit", type="primary")
 
 # ---- Persist last audit result across reruns ----
@@ -85,7 +58,6 @@ if run_btn:
         use_llm_recos=use_llm_recos,
         llm_model=llm_model,
         baseline_scenario=baseline,
-        waf_weights=waf_weights,
     )
 
     st.session_state["last_result"] = result

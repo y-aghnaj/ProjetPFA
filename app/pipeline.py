@@ -27,12 +27,13 @@ from rules.security_rules import (
 )
 from rules.perf_rules import rule_right_sizing_compute
 
-from scoring.scoring_engine import ScoringEngine
 from recommendations.generator import generate_recommendations
 from recommendations.llm_recommender import generate_llm_recommendations
 
 from app.diffing import diff_resources, diff_findings
 
+from governance.weight_calculator import WeightCalculator, WeightContext
+from scoring.scoring_engine import ScoringEngine
 
 def load_state(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
@@ -95,16 +96,19 @@ def _run_single_audit(
     scenario_label: str,
     use_llm_recos: bool,
     llm_model: str,
-    waf_weights: Optional[Dict[str, float]] = None,
 ) -> Dict[str, Any]:
     rg = build_resource_graph(state)
     engine = build_rule_engine()
 
     findings_objs = engine.run(rg.graph)
 
-    scorer = ScoringEngine(waf_weights=waf_weights)
-    score_report = scorer.compute(findings_objs)
+    provider = state.get("account", {}).get("provider", "OCI") # ou ta variable provider existante
+    ctx = WeightContext(provider=provider, snapshot=state)
+    pillar_weights = WeightCalculator().compute_pillar_weights(ctx)
 
+    scoring = ScoringEngine(waf_weights=pillar_weights)
+    score_report = scoring.compute(findings_objs)  # ou "findings" selon ton code
+    scores_dict = score_report.to_dict() if hasattr(score_report, "to_dict") else score_report
     # static recos (generator should skip suppressed)
     static_recos = generate_recommendations(findings_objs)
     recos = [r.to_dict() for r in static_recos]
@@ -138,7 +142,11 @@ def _run_single_audit(
         "meta": state.get("meta", {}),
         "summary": rg.summary(),
         "findings": [f.to_dict() for f in findings_objs],
-        "scores": score_report.to_dict(),
+        "scores": scores_dict,
+        "weights": {
+            "pillar_weights": pillar_weights,
+            "source": "weight_calculator",
+        },
         "recommendations": recos,
         "graph_dot": rg.to_dot(),
         "controls": controls,
@@ -152,7 +160,6 @@ def run_audit(
     use_llm_recos: bool = False,
     llm_model: str = "llama3.1",
     baseline_scenario: Optional[str] = None,
-    waf_weights: Optional[Dict[str, float]] = None,
 ) -> Dict[str, Any]:
     current_state = normalize_by_provider(load_state(scenario_path(scenario)))
     current = _run_single_audit(
@@ -160,7 +167,6 @@ def run_audit(
         scenario_label=scenario,
         use_llm_recos=use_llm_recos,
         llm_model=llm_model,
-        waf_weights=waf_weights,
     )
 
     result = current
@@ -172,7 +178,6 @@ def run_audit(
             scenario_label=baseline_scenario,
             use_llm_recos=False,  # baseline deterministic
             llm_model=llm_model,
-            waf_weights=waf_weights,
         )
 
         delta = {

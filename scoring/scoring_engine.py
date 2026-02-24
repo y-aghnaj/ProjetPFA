@@ -4,8 +4,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Any, Optional
 
-from governance.waf import DEFAULT_WAF_WEIGHTS, normalize_weights
-
 SEVERITY_PENALTY = {
     "LOW": 3,
     "MEDIUM": 7,
@@ -54,8 +52,10 @@ class ScoringEngine:
       - global_score = weighted sum of all pillar scores
     """
 
-    def __init__(self, waf_weights: Optional[Dict[str, float]] = None):
-        self.waf_weights = normalize_weights(waf_weights or DEFAULT_WAF_WEIGHTS)
+    def __init__(self, waf_weights: Dict[str, float]):
+        if not waf_weights:
+            raise ValueError("waf_weights is required and must be provided by WeightCalculator.")
+        self.waf_weights = dict(waf_weights)
 
     def compute(self, findings) -> ScoreReport:
         penalties_by_pillar: Dict[str, List[dict]] = {p: [] for p in self.waf_weights.keys()}
@@ -65,11 +65,11 @@ class ScoringEngine:
             base_penalty = SEVERITY_PENALTY.get(getattr(f, "severity", "MEDIUM"), 7)
             if getattr(f, "suppressed", False):
                 continue
+
             pillars = getattr(f, "pillars", None)
             if not pillars or not isinstance(pillars, list) or len(pillars) == 0:
                 pillars = [DEFAULT_PILLAR]
 
-            # keep only known pillars
             pillars = [p for p in pillars if p in self.waf_weights]
             if not pillars:
                 pillars = [DEFAULT_PILLAR]
@@ -88,20 +88,15 @@ class ScoringEngine:
                 "references": getattr(f, "references", []),
             }
 
-            # global (shown once)
             all_penalties.append({**base_entry, "penalty": base_penalty})
-
-            # per pillar (split)
             for p in pillars:
                 penalties_by_pillar[p].append({**base_entry, "penalty": split_penalty})
 
-        # pillar scores
         pillar_scores: Dict[str, int] = {}
         for pillar, plist in penalties_by_pillar.items():
             pillar_penalty_sum = sum(float(x["penalty"]) for x in plist)
             pillar_scores[pillar] = clamp(int(round(100 - pillar_penalty_sum)))
 
-        # global WAF weighted score
         global_score = 0.0
         for pillar, w in self.waf_weights.items():
             global_score += pillar_scores.get(pillar, 100) * float(w)
