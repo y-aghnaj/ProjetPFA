@@ -105,10 +105,22 @@ else:
     st.divider()
 
     # ---- Graph ----
-    st.subheader("Resource Graph")
-    st.graphviz_chart(result.get("graph_dot", ""))
+    if "baseline_graph_dot" in result:
+        st.subheader("Baseline Graph")
+        st.graphviz_chart(result["baseline_graph_dot"])
 
-    st.divider()
+        st.subheader("Current Graph")
+        st.graphviz_chart(result["graph_dot"])
+
+        st.subheader("Diff Graph")
+        st.graphviz_chart(result["diff_graph_dot"])
+        st.divider()
+
+    else:
+        st.subheader("Resource Graph")
+        st.graphviz_chart(result.get("graph_dot", ""))
+
+        st.divider()
 
     # ---- Findings ----
     st.subheader("Findings")

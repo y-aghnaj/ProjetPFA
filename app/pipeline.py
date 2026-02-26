@@ -30,7 +30,7 @@ from rules.perf_rules import rule_right_sizing_compute
 from recommendations.generator import generate_recommendations
 from recommendations.llm_recommender import generate_llm_recommendations
 
-from app.diffing import diff_resources, diff_findings
+from app.diffing import diff_resources, diff_findings, build_diff_graph_dot
 
 from governance.weight_calculator import WeightCalculator, WeightContext
 from scoring.scoring_engine import ScoringEngine
@@ -189,6 +189,15 @@ def run_audit(
                 "delta_global": current["scores"]["global_score"] - baseline["scores"]["global_score"],
             },
         }
+        # Build resource graphs
+        current_rg = build_resource_graph(current_state)
+        baseline_rg = build_resource_graph(baseline_state)
+
+        diff_graph_dot = build_diff_graph_dot(
+            current_rg,
+            baseline_rg,
+            delta["resources"]
+        )
 
         result = {
             **current,
@@ -197,6 +206,8 @@ def run_audit(
                 "summary": baseline["summary"],
                 "scores": baseline["scores"],
             },
+            "baseline_graph_dot": baseline_rg.to_dot(),
+            "diff_graph_dot": diff_graph_dot,
             "delta": delta,
         }
 
