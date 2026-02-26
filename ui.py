@@ -4,6 +4,7 @@ from pathlib import Path
 from datetime import datetime
 
 import streamlit as st
+import graphviz
 
 from app.pipeline import run_audit
 from reporting.ollama_report import generate_llm_report_from_dict
@@ -13,6 +14,10 @@ from reporting.ollama_report import generate_llm_report_from_dict
 def cached_llm_report(report_data: dict, model: str) -> str:
     return generate_llm_report_from_dict(report_data, model_name=model)
 
+def dot_to_png_bytes(dot: str) -> bytes:
+    """Render DOT to PNG bytes using graphviz."""
+    src = graphviz.Source(dot)
+    return src.pipe(format="png")
 
 st.set_page_config(page_title="Cloud Governance Audit ", layout="wide")
 
@@ -66,6 +71,7 @@ if run_btn:
 if result is None:
     st.info("Select a scenario and click **Run Audit** from the sidebar.")
 else:
+    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     scores = result["scores"]
     pillar_scores = scores.get("pillar_scores", {})
 
@@ -108,18 +114,45 @@ else:
     if "baseline_graph_dot" in result:
         st.subheader("Baseline Graph")
         st.graphviz_chart(result["baseline_graph_dot"])
+        png_bytes_baseline = dot_to_png_bytes(result["baseline_graph_dot"])
+        st.download_button(
+            label="Download baseline graph (PNG)",
+            data=png_bytes_baseline,
+            file_name=f"graph_baseline_{baseline}_{ts}.png",
+            mime="image/png",
+        )
 
         st.subheader("Current Graph")
         st.graphviz_chart(result["graph_dot"])
+        png_bytes_current = dot_to_png_bytes(result["graph_dot"])
+        st.download_button(
+            label="Download current graph (PNG)",
+            data=png_bytes_current,
+            file_name=f"graph_current_{scenario}_{ts}.png",
+            mime="image/png",
+        )
 
         st.subheader("Diff Graph")
         st.graphviz_chart(result["diff_graph_dot"])
+        png_bytes_diff = dot_to_png_bytes(result["diff_graph_dot"])
+        st.download_button(
+            label="Download diff graph (PNG)",
+            data=png_bytes_diff,
+            file_name=f"graph_diff_{baseline}_vs_{scenario}_{ts}.png",
+            mime="image/png",
+        )
         st.divider()
 
     else:
         st.subheader("Resource Graph")
         st.graphviz_chart(result.get("graph_dot", ""))
-
+        png_bytes = dot_to_png_bytes(result["graph_dot"])
+        st.download_button(
+            label="Download resource graph (PNG)",
+            data=png_bytes,
+            file_name=f"graph_{scenario}_{ts}.png",
+            mime="image/png",
+        )
         st.divider()
 
     # ---- Findings ----

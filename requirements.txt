@@ -1,3 +1,4 @@
 pydantic
 networkx
 streamlit
+graphviz
