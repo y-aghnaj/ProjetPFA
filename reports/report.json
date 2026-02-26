@@ -1,17 +1,17 @@
 {
-  "provider": "AWS",
-  "scenario": "31_[complex scenario]_aws_ecommerce_dynamic_t1",
+  "provider": "OCI",
+  "scenario": "30_[complex scenario]_fintech_platform_dynamic_t1",
   "meta": {
-    "scenario_family": "aws_ecommerce_dynamic",
+    "scenario_family": "fintech_platform_dynamic",
     "snapshot": "t1",
-    "captured_at": "2026-01-30T18:01:00+01:00",
+    "captured_at": "2026-01-26T18:01:00+01:00",
     "tags": [
       "complex scenario",
       "prod",
-      "ecommerce",
+      "fintech",
       "dynamic"
     ],
-    "story": "Some fixes applied (bastion SSH restricted, one bucket hardened) but a temporary public bucket appears and orders DB is still public with backups disabled."
+    "story": "Some fixes applied (bucket encryption/logging) but new temporary bucket appears and DB still exposed."
   },
   "summary": {
     "nodes": 21,
@@ -19,62 +19,14 @@
   },
   "findings": [
     {
-      "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
-      "resource_id": "bucket_product_images",
-      "severity": "MEDIUM",
-      "responsibility": "CUSTOMER",
-      "message": "Object Storage bucket encryption is disabled.",
-      "evidence": {
-        "encrypted": false,
-        "name": "product-images"
-      },
-      "risk": 0.12,
-      "confidence": 1.0,
-      "impact": [
-        "data_exposure"
-      ],
-      "context": {
-        "tags": {
-          "environment": "prod",
-          "owner": "marketing",
-          "data_classification": "internal"
-        }
-      },
-      "primary_pillar": "SECURITY",
-      "pillars": [
-        "SECURITY"
-      ],
-      "references": [
-        {
-          "standard": "WAF",
-          "id": "SEC-02",
-          "name": "Encrypt data at rest"
-        },
-        {
-          "standard": "CIS",
-          "id": "Storage-2",
-          "name": "Ensure encryption at rest is enabled"
-        },
-        {
-          "standard": "ISO27001",
-          "id": "A.10.1",
-          "name": "Cryptographic controls"
-        }
-      ],
-      "suppressed": true,
-      "covered_by": [
-        "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT"
-      ]
-    },
-    {
       "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-      "resource_id": "bucket_product_images",
+      "resource_id": "bucket_customer_exports",
       "severity": "MEDIUM",
       "responsibility": "CUSTOMER",
       "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
       "evidence": {
         "logging_enabled": false,
-        "name": "product-images"
+        "name": "customer-exports"
       },
       "risk": 0.12,
       "confidence": 1.0,
@@ -84,8 +36,8 @@
       "context": {
         "tags": {
           "environment": "prod",
-          "owner": "marketing",
-          "data_classification": "internal"
+          "owner": "data",
+          "data_classification": "restricted"
         }
       },
       "primary_pillar": "SECURITY",
@@ -115,13 +67,13 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-      "resource_id": "bucket_product_images",
+      "resource_id": "bucket_customer_exports",
       "severity": "MEDIUM",
       "responsibility": "CUSTOMER",
       "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
       "evidence": {
         "versioning": false,
-        "name": "product-images"
+        "name": "customer-exports"
       },
       "risk": 0.12,
       "confidence": 1.0,
@@ -132,8 +84,8 @@
       "context": {
         "tags": {
           "environment": "prod",
-          "owner": "marketing",
-          "data_classification": "internal"
+          "owner": "data",
+          "data_classification": "restricted"
         }
       },
       "primary_pillar": "SECURITY",
@@ -163,13 +115,13 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
-      "resource_id": "bucket_tmp_export",
+      "resource_id": "bucket_tmp_migration",
       "severity": "MEDIUM",
       "responsibility": "CUSTOMER",
       "message": "Object Storage bucket encryption is disabled.",
       "evidence": {
         "encrypted": false,
-        "name": "tmp-export"
+        "name": "tmp-migration"
       },
       "risk": 0.12,
       "confidence": 1.0,
@@ -211,13 +163,13 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-      "resource_id": "bucket_tmp_export",
+      "resource_id": "bucket_tmp_migration",
       "severity": "MEDIUM",
       "responsibility": "CUSTOMER",
       "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
       "evidence": {
         "logging_enabled": false,
-        "name": "tmp-export"
+        "name": "tmp-migration"
       },
       "risk": 0.12,
       "confidence": 1.0,
@@ -258,13 +210,13 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-      "resource_id": "bucket_tmp_export",
+      "resource_id": "bucket_tmp_migration",
       "severity": "MEDIUM",
       "responsibility": "CUSTOMER",
       "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
       "evidence": {
         "versioning": false,
-        "name": "tmp-export"
+        "name": "tmp-migration"
       },
       "risk": 0.12,
       "confidence": 1.0,
@@ -306,16 +258,16 @@
     },
     {
       "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-      "resource_id": "compute_web_01",
+      "resource_id": "compute_api_01",
       "severity": "MEDIUM",
       "responsibility": "CUSTOMER",
       "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
       "evidence": {
-        "avg_cpu_utilization": 2.2,
+        "avg_cpu_utilization": 2.5,
         "ocpus": 8,
-        "memory_gb": 32,
-        "shape": "m6i.2xlarge",
-        "name": "web-01"
+        "memory_gb": 64,
+        "shape": "VM.Standard.E4.Flex",
+        "name": "api-01"
       },
       "risk": 0.08,
       "confidence": 1.0,
@@ -356,16 +308,16 @@
     },
     {
       "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-      "resource_id": "compute_web_02",
+      "resource_id": "compute_api_02",
       "severity": "MEDIUM",
       "responsibility": "CUSTOMER",
       "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
       "evidence": {
-        "avg_cpu_utilization": 2.7,
+        "avg_cpu_utilization": 2.9,
         "ocpus": 8,
-        "memory_gb": 32,
-        "shape": "m6i.2xlarge",
-        "name": "web-02"
+        "memory_gb": 64,
+        "shape": "VM.Standard.E4.Flex",
+        "name": "api-02"
       },
       "risk": 0.08,
       "confidence": 1.0,
@@ -413,8 +365,8 @@
       "evidence": {
         "avg_cpu_utilization": 3.8,
         "ocpus": 4,
-        "memory_gb": 16,
-        "shape": "t3.xlarge",
+        "memory_gb": 32,
+        "shape": "VM.Standard.E4.Flex",
         "name": "worker-01"
       },
       "risk": 0.08,
@@ -455,15 +407,14 @@
       "covered_by": []
     },
     {
-      "rule_id": "OCI.SEC.BUCKET.PUBLIC",
-      "resource_id": "bucket_product_images",
+      "rule_id": "OCI.SEC.BUCKET.ENCRYPTION",
+      "resource_id": "bucket_customer_exports",
       "severity": "HIGH",
       "responsibility": "CUSTOMER",
-      "message": "Object Storage bucket is public. This may expose sensitive data.",
+      "message": "Object Storage bucket encryption is disabled.",
       "evidence": {
-        "public": true,
-        "name": "product-images",
-        "compartment": "comp_ecommerce"
+        "encrypted": false,
+        "name": "customer-exports"
       },
       "risk": 0.25,
       "confidence": 1.0,
@@ -473,10 +424,9 @@
       "context": {
         "tags": {
           "environment": "prod",
-          "owner": "marketing",
-          "data_classification": "internal"
-        },
-        "env": "prod"
+          "owner": "data",
+          "data_classification": "restricted"
+        }
       },
       "primary_pillar": "SECURITY",
       "pillars": [
@@ -485,18 +435,18 @@
       "references": [
         {
           "standard": "WAF",
-          "id": "SEC-01",
-          "name": "Protect data at rest and in transit / prevent public exposure"
+          "id": "SEC-02",
+          "name": "Encrypt data at rest"
         },
         {
           "standard": "CIS",
-          "id": "Storage-1",
-          "name": "Ensure storage is not publicly accessible"
+          "id": "Storage-2",
+          "name": "Ensure encryption at rest is enabled"
         },
         {
           "standard": "ISO27001",
-          "id": "A.8.2",
-          "name": "Information classification & handling"
+          "id": "A.10.1",
+          "name": "Cryptographic controls"
         }
       ],
       "suppressed": true,
@@ -506,14 +456,14 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.PUBLIC",
-      "resource_id": "bucket_tmp_export",
+      "resource_id": "bucket_tmp_migration",
       "severity": "HIGH",
       "responsibility": "CUSTOMER",
       "message": "Object Storage bucket is public. This may expose sensitive data.",
       "evidence": {
         "public": true,
-        "name": "tmp-export",
-        "compartment": "comp_ecommerce"
+        "name": "tmp-migration",
+        "compartment": "comp_finance"
       },
       "risk": 0.25,
       "confidence": 1.0,
@@ -556,13 +506,13 @@
     },
     {
       "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
-      "resource_id": "adb_orders",
+      "resource_id": "adb_payments",
       "severity": "HIGH",
       "responsibility": "CUSTOMER",
       "message": "Database backups are disabled. This increases recovery time and data loss risk.",
       "evidence": {
         "backups_enabled": false,
-        "name": "orders-db"
+        "name": "payments-adb"
       },
       "risk": 0.25,
       "confidence": 1.0,
@@ -613,7 +563,7 @@
         "protocol": "tcp",
         "port": 3389,
         "source": "0.0.0.0/0",
-        "nsg": "app-sg"
+        "nsg": "app-nsg"
       },
       "risk": 0.4,
       "confidence": 1.0,
@@ -652,14 +602,14 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-      "resource_id": "bucket_product_images",
+      "resource_id": "bucket_customer_exports",
       "severity": "CRITICAL",
       "responsibility": "CUSTOMER",
       "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
       "evidence": {
         "public": true,
         "encrypted": false,
-        "name": "product-images"
+        "name": "customer-exports"
       },
       "risk": 0.4,
       "confidence": 1.0,
@@ -669,8 +619,8 @@
       "context": {
         "tags": {
           "environment": "prod",
-          "owner": "marketing",
-          "data_classification": "internal"
+          "owner": "data",
+          "data_classification": "restricted"
         },
         "covers": [
           "OCI.SEC.BUCKET.PUBLIC",
@@ -702,15 +652,65 @@
       "covered_by": []
     },
     {
+      "rule_id": "OCI.SEC.BUCKET.PUBLIC",
+      "resource_id": "bucket_customer_exports",
+      "severity": "CRITICAL",
+      "responsibility": "CUSTOMER",
+      "message": "Object Storage bucket is public. This may expose sensitive data.",
+      "evidence": {
+        "public": true,
+        "name": "customer-exports",
+        "compartment": "comp_finance"
+      },
+      "risk": 0.4,
+      "confidence": 1.0,
+      "impact": [
+        "data_exposure"
+      ],
+      "context": {
+        "tags": {
+          "environment": "prod",
+          "owner": "data",
+          "data_classification": "restricted"
+        },
+        "env": "prod"
+      },
+      "primary_pillar": "SECURITY",
+      "pillars": [
+        "SECURITY"
+      ],
+      "references": [
+        {
+          "standard": "WAF",
+          "id": "SEC-01",
+          "name": "Protect data at rest and in transit / prevent public exposure"
+        },
+        {
+          "standard": "CIS",
+          "id": "Storage-1",
+          "name": "Ensure storage is not publicly accessible"
+        },
+        {
+          "standard": "ISO27001",
+          "id": "A.8.2",
+          "name": "Information classification & handling"
+        }
+      ],
+      "suppressed": true,
+      "covered_by": [
+        "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT"
+      ]
+    },
+    {
       "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-      "resource_id": "bucket_tmp_export",
+      "resource_id": "bucket_tmp_migration",
       "severity": "CRITICAL",
       "responsibility": "CUSTOMER",
       "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
       "evidence": {
         "public": true,
         "encrypted": false,
-        "name": "tmp-export"
+        "name": "tmp-migration"
       },
       "risk": 0.4,
       "confidence": 1.0,
@@ -754,13 +754,13 @@
     },
     {
       "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-      "resource_id": "adb_orders",
+      "resource_id": "adb_payments",
       "severity": "CRITICAL",
       "responsibility": "CUSTOMER",
       "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
       "evidence": {
         "public_endpoint": true,
-        "name": "orders-db"
+        "name": "payments-adb"
       },
       "risk": 0.4,
       "confidence": 1.0,
@@ -801,13 +801,13 @@
     },
     {
       "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-      "resource_id": "adb_analytics",
+      "resource_id": "adb_reporting",
       "severity": "CRITICAL",
       "responsibility": "CUSTOMER",
       "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
       "evidence": {
         "public_endpoint": true,
-        "name": "analytics-db"
+        "name": "reporting-adb"
       },
       "risk": 0.4,
       "confidence": 1.0,
@@ -868,7 +868,7 @@
     "penalties": [
       {
         "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-        "resource_id": "bucket_product_images",
+        "resource_id": "bucket_customer_exports",
         "severity": "MEDIUM",
         "responsibility": "CUSTOMER",
         "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -899,7 +899,7 @@
       },
       {
         "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-        "resource_id": "bucket_product_images",
+        "resource_id": "bucket_customer_exports",
         "severity": "MEDIUM",
         "responsibility": "CUSTOMER",
         "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -930,7 +930,7 @@
       },
       {
         "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-        "resource_id": "bucket_tmp_export",
+        "resource_id": "bucket_tmp_migration",
         "severity": "MEDIUM",
         "responsibility": "CUSTOMER",
         "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -961,7 +961,7 @@
       },
       {
         "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-        "resource_id": "bucket_tmp_export",
+        "resource_id": "bucket_tmp_migration",
         "severity": "MEDIUM",
         "responsibility": "CUSTOMER",
         "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -992,7 +992,7 @@
       },
       {
         "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-        "resource_id": "compute_web_01",
+        "resource_id": "compute_api_01",
         "severity": "MEDIUM",
         "responsibility": "CUSTOMER",
         "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -1023,7 +1023,7 @@
       },
       {
         "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-        "resource_id": "compute_web_02",
+        "resource_id": "compute_api_02",
         "severity": "MEDIUM",
         "responsibility": "CUSTOMER",
         "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -1085,7 +1085,7 @@
       },
       {
         "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
-        "resource_id": "adb_orders",
+        "resource_id": "adb_payments",
         "severity": "HIGH",
         "responsibility": "CUSTOMER",
         "message": "Database backups are disabled. This increases recovery time and data loss risk.",
@@ -1146,7 +1146,7 @@
       },
       {
         "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-        "resource_id": "bucket_product_images",
+        "resource_id": "bucket_customer_exports",
         "severity": "CRITICAL",
         "responsibility": "CUSTOMER",
         "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
@@ -1176,7 +1176,7 @@
       },
       {
         "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-        "resource_id": "bucket_tmp_export",
+        "resource_id": "bucket_tmp_migration",
         "severity": "CRITICAL",
         "responsibility": "CUSTOMER",
         "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
@@ -1206,7 +1206,7 @@
       },
       {
         "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-        "resource_id": "adb_orders",
+        "resource_id": "adb_payments",
         "severity": "CRITICAL",
         "responsibility": "CUSTOMER",
         "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
@@ -1236,7 +1236,7 @@
       },
       {
         "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-        "resource_id": "adb_analytics",
+        "resource_id": "adb_reporting",
         "severity": "CRITICAL",
         "responsibility": "CUSTOMER",
         "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
@@ -1269,7 +1269,7 @@
       "SECURITY": [
         {
           "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-          "resource_id": "bucket_product_images",
+          "resource_id": "bucket_customer_exports",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -1300,7 +1300,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-          "resource_id": "bucket_product_images",
+          "resource_id": "bucket_customer_exports",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -1331,7 +1331,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-          "resource_id": "bucket_tmp_export",
+          "resource_id": "bucket_tmp_migration",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -1362,7 +1362,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-          "resource_id": "bucket_tmp_export",
+          "resource_id": "bucket_tmp_migration",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -1423,7 +1423,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-          "resource_id": "bucket_product_images",
+          "resource_id": "bucket_customer_exports",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
@@ -1453,7 +1453,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-          "resource_id": "bucket_tmp_export",
+          "resource_id": "bucket_tmp_migration",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
@@ -1483,7 +1483,7 @@
         },
         {
           "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-          "resource_id": "adb_orders",
+          "resource_id": "adb_payments",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
@@ -1513,7 +1513,7 @@
         },
         {
           "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-          "resource_id": "adb_analytics",
+          "resource_id": "adb_reporting",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
@@ -1545,7 +1545,7 @@
       "RELIABILITY": [
         {
           "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-          "resource_id": "bucket_product_images",
+          "resource_id": "bucket_customer_exports",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -1576,7 +1576,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-          "resource_id": "bucket_tmp_export",
+          "resource_id": "bucket_tmp_migration",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -1607,7 +1607,7 @@
         },
         {
           "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
-          "resource_id": "adb_orders",
+          "resource_id": "adb_payments",
           "severity": "HIGH",
           "responsibility": "CUSTOMER",
           "message": "Database backups are disabled. This increases recovery time and data loss risk.",
@@ -1640,7 +1640,7 @@
       "PERFORMANCE": [
         {
           "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-          "resource_id": "compute_web_01",
+          "resource_id": "compute_api_01",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -1671,7 +1671,7 @@
         },
         {
           "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-          "resource_id": "compute_web_02",
+          "resource_id": "compute_api_02",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -1735,7 +1735,7 @@
       "COST": [
         {
           "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-          "resource_id": "compute_web_01",
+          "resource_id": "compute_api_01",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -1766,7 +1766,7 @@
         },
         {
           "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-          "resource_id": "compute_web_02",
+          "resource_id": "compute_api_02",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -1830,7 +1830,7 @@
       "OPERATIONAL_EXCELLENCE": [
         {
           "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-          "resource_id": "bucket_product_images",
+          "resource_id": "bucket_customer_exports",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -1861,7 +1861,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-          "resource_id": "bucket_tmp_export",
+          "resource_id": "bucket_tmp_migration",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -1892,7 +1892,7 @@
         },
         {
           "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
-          "resource_id": "adb_orders",
+          "resource_id": "adb_payments",
           "severity": "HIGH",
           "responsibility": "CUSTOMER",
           "message": "Database backups are disabled. This increases recovery time and data loss risk.",
@@ -1924,10 +1924,20 @@
       ]
     }
   },
+  "weights": {
+    "pillar_weights": {
+      "SECURITY": 0.3,
+      "RELIABILITY": 0.2,
+      "PERFORMANCE": 0.15,
+      "COST": 0.15,
+      "OPERATIONAL_EXCELLENCE": 0.2
+    },
+    "source": "weight_calculator"
+  },
   "recommendations": [
     {
       "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-      "resource_id": "bucket_product_images",
+      "resource_id": "bucket_customer_exports",
       "title": "Enable access logging for Object Storage bucket",
       "steps": [
         "Enable bucket access logging.",
@@ -1966,7 +1976,7 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-      "resource_id": "bucket_product_images",
+      "resource_id": "bucket_customer_exports",
       "title": "Enable bucket versioning (recovery and anti-ransomware)",
       "steps": [
         "Enable object versioning.",
@@ -2005,7 +2015,7 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-      "resource_id": "bucket_tmp_export",
+      "resource_id": "bucket_tmp_migration",
       "title": "Enable access logging for Object Storage bucket",
       "steps": [
         "Enable bucket access logging.",
@@ -2044,7 +2054,7 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-      "resource_id": "bucket_tmp_export",
+      "resource_id": "bucket_tmp_migration",
       "title": "Enable bucket versioning (recovery and anti-ransomware)",
       "steps": [
         "Enable object versioning.",
@@ -2083,7 +2093,7 @@
     },
     {
       "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-      "resource_id": "compute_web_01",
+      "resource_id": "compute_api_01",
       "title": "Right-size compute resources to reduce waste and improve efficiency",
       "steps": [
         "Review CPU/memory metrics over an appropriate observation window.",
@@ -2123,7 +2133,7 @@
     },
     {
       "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-      "resource_id": "compute_web_02",
+      "resource_id": "compute_api_02",
       "title": "Right-size compute resources to reduce waste and improve efficiency",
       "steps": [
         "Review CPU/memory metrics over an appropriate observation window.",
@@ -2203,7 +2213,7 @@
     },
     {
       "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
-      "resource_id": "adb_orders",
+      "resource_id": "adb_payments",
       "title": "Enable database backups and recovery testing",
       "steps": [
         "Enable automated backups.",
@@ -2280,7 +2290,7 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-      "resource_id": "bucket_product_images",
+      "resource_id": "bucket_customer_exports",
       "title": "Make bucket private and enable encryption (combined exposure)",
       "steps": [
         "Disable public access on the bucket.",
@@ -2321,7 +2331,7 @@
     },
     {
       "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-      "resource_id": "bucket_tmp_export",
+      "resource_id": "bucket_tmp_migration",
       "title": "Make bucket private and enable encryption (combined exposure)",
       "steps": [
         "Disable public access on the bucket.",
@@ -2362,7 +2372,7 @@
     },
     {
       "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-      "resource_id": "adb_orders",
+      "resource_id": "adb_payments",
       "title": "Disable public endpoint and enforce private access for the database",
       "steps": [
         "Disable the public endpoint for the database.",
@@ -2400,7 +2410,7 @@
     },
     {
       "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-      "resource_id": "adb_analytics",
+      "resource_id": "adb_reporting",
       "title": "Disable public endpoint and enforce private access for the database",
       "steps": [
         "Disable the public endpoint for the database.",
@@ -2437,7 +2447,7 @@
       "source": "STATIC"
     }
   ],
-  "graph_dot": "digraph G {\n\"vcn_main\" [label=\"vcn_main\\nvcn\"];\n\"subnet_public\" [label=\"subnet_public\\nsubnet\"];\n\"subnet_app\" [label=\"subnet_app\\nsubnet\"];\n\"subnet_db\" [label=\"subnet_db\\nsubnet\"];\n\"nsg_bastion\" [label=\"nsg_bastion\\nnetwork_security_group\"];\n\"nsg_app\" [label=\"nsg_app\\nnetwork_security_group\"];\n\"nsg_db\" [label=\"nsg_db\\nnetwork_security_group\"];\n\"compute_bastion_01\" [label=\"compute_bastion_01\\ncompute_instance\"];\n\"compute_web_01\" [label=\"compute_web_01\\ncompute_instance\"];\n\"compute_web_02\" [label=\"compute_web_02\\ncompute_instance\"];\n\"compute_worker_01\" [label=\"compute_worker_01\\ncompute_instance\"];\n\"bucket_orders\" [label=\"bucket_orders\\nobject_storage_bucket\"];\n\"bucket_product_images\" [label=\"bucket_product_images\\nobject_storage_bucket\"];\n\"bucket_tmp_export\" [label=\"bucket_tmp_export\\nobject_storage_bucket\"];\n\"bucket_audit_logs\" [label=\"bucket_audit_logs\\nobject_storage_bucket\"];\n\"adb_orders\" [label=\"adb_orders\\nautonomous_database\"];\n\"adb_analytics\" [label=\"adb_analytics\\nautonomous_database\"];\n\"lb_public\" [label=\"lb_public\\nload_balancer\"];\n\"apigw_main\" [label=\"apigw_main\\napi_gateway\"];\n\"user_alice\" [label=\"user_alice\\nuser\"];\n\"user_devops\" [label=\"user_devops\\nuser\"];\n\"subnet_public\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"subnet_app\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"subnet_app\" -> \"adb_orders\" [label=\"connects_to\"];\n\"subnet_app\" -> \"adb_analytics\" [label=\"connects_to\"];\n\"subnet_db\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"nsg_bastion\" -> \"compute_bastion_01\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_web_01\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_web_02\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_worker_01\" [label=\"protects\"];\n\"compute_bastion_01\" -> \"subnet_public\" [label=\"in_subnet\"];\n\"compute_web_01\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"compute_web_02\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"compute_worker_01\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"lb_public\" -> \"apigw_main\" [label=\"routes_to\"];\n\"apigw_main\" -> \"compute_web_01\" [label=\"routes_to\"];\n\"apigw_main\" -> \"compute_web_02\" [label=\"routes_to\"];\n\"user_alice\" -> \"bucket_orders\" [label=\"created\"];\n\"user_alice\" -> \"adb_orders\" [label=\"created\"];\n\"user_devops\" -> \"bucket_audit_logs\" [label=\"created\"];\n}",
+  "graph_dot": "digraph G {\n\"vcn_main\" [label=\"vcn_main\\nvcn\"];\n\"subnet_public\" [label=\"subnet_public\\nsubnet\"];\n\"subnet_app\" [label=\"subnet_app\\nsubnet\"];\n\"subnet_db\" [label=\"subnet_db\\nsubnet\"];\n\"nsg_bastion\" [label=\"nsg_bastion\\nnetwork_security_group\"];\n\"nsg_app\" [label=\"nsg_app\\nnetwork_security_group\"];\n\"nsg_db\" [label=\"nsg_db\\nnetwork_security_group\"];\n\"compute_bastion_01\" [label=\"compute_bastion_01\\ncompute_instance\"];\n\"compute_api_01\" [label=\"compute_api_01\\ncompute_instance\"];\n\"compute_api_02\" [label=\"compute_api_02\\ncompute_instance\"];\n\"compute_worker_01\" [label=\"compute_worker_01\\ncompute_instance\"];\n\"bucket_payments\" [label=\"bucket_payments\\nobject_storage_bucket\"];\n\"bucket_customer_exports\" [label=\"bucket_customer_exports\\nobject_storage_bucket\"];\n\"bucket_tmp_migration\" [label=\"bucket_tmp_migration\\nobject_storage_bucket\"];\n\"bucket_audit_logs\" [label=\"bucket_audit_logs\\nobject_storage_bucket\"];\n\"adb_payments\" [label=\"adb_payments\\nautonomous_database\"];\n\"adb_reporting\" [label=\"adb_reporting\\nautonomous_database\"];\n\"lb_public\" [label=\"lb_public\\nload_balancer\"];\n\"apigw_main\" [label=\"apigw_main\\napi_gateway\"];\n\"user_alice\" [label=\"user_alice\\nuser\"];\n\"user_devops\" [label=\"user_devops\\nuser\"];\n\"subnet_public\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"subnet_app\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"subnet_app\" -> \"adb_payments\" [label=\"connects_to\"];\n\"subnet_app\" -> \"adb_reporting\" [label=\"connects_to\"];\n\"subnet_db\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"nsg_bastion\" -> \"compute_bastion_01\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_api_01\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_api_02\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_worker_01\" [label=\"protects\"];\n\"compute_bastion_01\" -> \"subnet_public\" [label=\"in_subnet\"];\n\"compute_api_01\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"compute_api_02\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"compute_worker_01\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"lb_public\" -> \"apigw_main\" [label=\"routes_to\"];\n\"apigw_main\" -> \"compute_api_01\" [label=\"routes_to\"];\n\"apigw_main\" -> \"compute_api_02\" [label=\"routes_to\"];\n\"user_alice\" -> \"bucket_payments\" [label=\"created\"];\n\"user_alice\" -> \"adb_payments\" [label=\"created\"];\n\"user_devops\" -> \"bucket_audit_logs\" [label=\"created\"];\n}",
   "controls": {
     "node_rules": [
       {
@@ -2520,7 +2530,7 @@
     }
   },
   "baseline": {
-    "scenario": "31_[complex scenario]_aws_ecommerce_dynamic_t0",
+    "scenario": "30_[complex scenario]_fintech_platform_dynamic_t0",
     "summary": {
       "nodes": 20,
       "edges": 19
@@ -2546,7 +2556,7 @@
       "penalties": [
         {
           "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-          "resource_id": "bucket_orders",
+          "resource_id": "bucket_payments",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -2577,7 +2587,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-          "resource_id": "bucket_orders",
+          "resource_id": "bucket_payments",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -2608,7 +2618,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-          "resource_id": "bucket_product_images",
+          "resource_id": "bucket_customer_exports",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -2639,7 +2649,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-          "resource_id": "bucket_product_images",
+          "resource_id": "bucket_customer_exports",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -2701,7 +2711,7 @@
         },
         {
           "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-          "resource_id": "compute_web_01",
+          "resource_id": "compute_api_01",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -2732,7 +2742,7 @@
         },
         {
           "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-          "resource_id": "compute_web_02",
+          "resource_id": "compute_api_02",
           "severity": "MEDIUM",
           "responsibility": "CUSTOMER",
           "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -2794,7 +2804,7 @@
         },
         {
           "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
-          "resource_id": "adb_orders",
+          "resource_id": "adb_payments",
           "severity": "HIGH",
           "responsibility": "CUSTOMER",
           "message": "Database backups are disabled. This increases recovery time and data loss risk.",
@@ -2915,7 +2925,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-          "resource_id": "bucket_orders",
+          "resource_id": "bucket_payments",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
@@ -2945,7 +2955,7 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-          "resource_id": "bucket_product_images",
+          "resource_id": "bucket_customer_exports",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
@@ -2975,7 +2985,7 @@
         },
         {
           "rule_id": "OCI.SEC.DB.PUBLIC_AND_NO_ENCRYPT",
-          "resource_id": "adb_orders",
+          "resource_id": "adb_payments",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "Database is publicly reachable and encryption is disabled. This is a critical exposure.",
@@ -3005,7 +3015,7 @@
         },
         {
           "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-          "resource_id": "adb_analytics",
+          "resource_id": "adb_reporting",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
@@ -3035,7 +3045,7 @@
         },
         {
           "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
-          "resource_id": "adb_orders",
+          "resource_id": "adb_payments",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
@@ -3066,7 +3076,7 @@
         },
         {
           "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
-          "resource_id": "adb_analytics",
+          "resource_id": "adb_reporting",
           "severity": "CRITICAL",
           "responsibility": "CUSTOMER",
           "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
@@ -3100,7 +3110,7 @@
         "SECURITY": [
           {
             "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-            "resource_id": "bucket_orders",
+            "resource_id": "bucket_payments",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -3131,7 +3141,7 @@
           },
           {
             "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-            "resource_id": "bucket_orders",
+            "resource_id": "bucket_payments",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -3162,7 +3172,7 @@
           },
           {
             "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-            "resource_id": "bucket_product_images",
+            "resource_id": "bucket_customer_exports",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -3193,7 +3203,7 @@
           },
           {
             "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-            "resource_id": "bucket_product_images",
+            "resource_id": "bucket_customer_exports",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -3314,7 +3324,7 @@
           },
           {
             "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-            "resource_id": "bucket_orders",
+            "resource_id": "bucket_payments",
             "severity": "CRITICAL",
             "responsibility": "CUSTOMER",
             "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
@@ -3344,7 +3354,7 @@
           },
           {
             "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-            "resource_id": "bucket_product_images",
+            "resource_id": "bucket_customer_exports",
             "severity": "CRITICAL",
             "responsibility": "CUSTOMER",
             "message": "Bucket is public and encryption is disabled. Combined misconfiguration increases data exposure risk.",
@@ -3374,7 +3384,7 @@
           },
           {
             "rule_id": "OCI.SEC.DB.PUBLIC_AND_NO_ENCRYPT",
-            "resource_id": "adb_orders",
+            "resource_id": "adb_payments",
             "severity": "CRITICAL",
             "responsibility": "CUSTOMER",
             "message": "Database is publicly reachable and encryption is disabled. This is a critical exposure.",
@@ -3404,7 +3414,7 @@
           },
           {
             "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-            "resource_id": "adb_analytics",
+            "resource_id": "adb_reporting",
             "severity": "CRITICAL",
             "responsibility": "CUSTOMER",
             "message": "Database has a public endpoint enabled. This increases exposure to external threats.",
@@ -3434,7 +3444,7 @@
           },
           {
             "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
-            "resource_id": "adb_orders",
+            "resource_id": "adb_payments",
             "severity": "CRITICAL",
             "responsibility": "CUSTOMER",
             "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
@@ -3465,7 +3475,7 @@
           },
           {
             "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
-            "resource_id": "adb_analytics",
+            "resource_id": "adb_reporting",
             "severity": "CRITICAL",
             "responsibility": "CUSTOMER",
             "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
@@ -3498,7 +3508,7 @@
         "RELIABILITY": [
           {
             "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-            "resource_id": "bucket_orders",
+            "resource_id": "bucket_payments",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -3529,7 +3539,7 @@
           },
           {
             "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-            "resource_id": "bucket_product_images",
+            "resource_id": "bucket_customer_exports",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Bucket versioning is disabled. This increases risk of irreversible deletion or ransomware impact.",
@@ -3560,7 +3570,7 @@
           },
           {
             "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
-            "resource_id": "adb_orders",
+            "resource_id": "adb_payments",
             "severity": "HIGH",
             "responsibility": "CUSTOMER",
             "message": "Database backups are disabled. This increases recovery time and data loss risk.",
@@ -3591,7 +3601,7 @@
           },
           {
             "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
-            "resource_id": "adb_orders",
+            "resource_id": "adb_payments",
             "severity": "CRITICAL",
             "responsibility": "CUSTOMER",
             "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
@@ -3622,7 +3632,7 @@
           },
           {
             "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
-            "resource_id": "adb_analytics",
+            "resource_id": "adb_reporting",
             "severity": "CRITICAL",
             "responsibility": "CUSTOMER",
             "message": "A public SSH exposure provides a potential path to a database (multi-hop exposure).",
@@ -3686,7 +3696,7 @@
           },
           {
             "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-            "resource_id": "compute_web_01",
+            "resource_id": "compute_api_01",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -3717,7 +3727,7 @@
           },
           {
             "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-            "resource_id": "compute_web_02",
+            "resource_id": "compute_api_02",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -3812,7 +3822,7 @@
           },
           {
             "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-            "resource_id": "compute_web_01",
+            "resource_id": "compute_api_01",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -3843,7 +3853,7 @@
           },
           {
             "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-            "resource_id": "compute_web_02",
+            "resource_id": "compute_api_02",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Compute instance may be over-provisioned (low average CPU). Consider right-sizing.",
@@ -3907,7 +3917,7 @@
         "OPERATIONAL_EXCELLENCE": [
           {
             "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-            "resource_id": "bucket_orders",
+            "resource_id": "bucket_payments",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -3938,7 +3948,7 @@
           },
           {
             "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-            "resource_id": "bucket_product_images",
+            "resource_id": "bucket_customer_exports",
             "severity": "MEDIUM",
             "responsibility": "CUSTOMER",
             "message": "Bucket logging is disabled. This reduces auditability and incident response capability.",
@@ -3969,7 +3979,7 @@
           },
           {
             "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
-            "resource_id": "adb_orders",
+            "resource_id": "adb_payments",
             "severity": "HIGH",
             "responsibility": "CUSTOMER",
             "message": "Database backups are disabled. This increases recovery time and data loss risk.",
@@ -4002,15 +4012,17 @@
       }
     }
   },
+  "baseline_graph_dot": "digraph G {\n\"vcn_main\" [label=\"vcn_main\\nvcn\"];\n\"subnet_public\" [label=\"subnet_public\\nsubnet\"];\n\"subnet_app\" [label=\"subnet_app\\nsubnet\"];\n\"subnet_db\" [label=\"subnet_db\\nsubnet\"];\n\"nsg_bastion\" [label=\"nsg_bastion\\nnetwork_security_group\"];\n\"nsg_app\" [label=\"nsg_app\\nnetwork_security_group\"];\n\"nsg_db\" [label=\"nsg_db\\nnetwork_security_group\"];\n\"compute_bastion_01\" [label=\"compute_bastion_01\\ncompute_instance\"];\n\"compute_api_01\" [label=\"compute_api_01\\ncompute_instance\"];\n\"compute_api_02\" [label=\"compute_api_02\\ncompute_instance\"];\n\"compute_worker_01\" [label=\"compute_worker_01\\ncompute_instance\"];\n\"bucket_payments\" [label=\"bucket_payments\\nobject_storage_bucket\"];\n\"bucket_customer_exports\" [label=\"bucket_customer_exports\\nobject_storage_bucket\"];\n\"bucket_audit_logs\" [label=\"bucket_audit_logs\\nobject_storage_bucket\"];\n\"adb_payments\" [label=\"adb_payments\\nautonomous_database\"];\n\"adb_reporting\" [label=\"adb_reporting\\nautonomous_database\"];\n\"lb_public\" [label=\"lb_public\\nload_balancer\"];\n\"apigw_main\" [label=\"apigw_main\\napi_gateway\"];\n\"user_alice\" [label=\"user_alice\\nuser\"];\n\"user_devops\" [label=\"user_devops\\nuser\"];\n\"subnet_public\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"subnet_app\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"subnet_app\" -> \"adb_payments\" [label=\"connects_to\"];\n\"subnet_app\" -> \"adb_reporting\" [label=\"connects_to\"];\n\"subnet_db\" -> \"vcn_main\" [label=\"in_vcn\"];\n\"nsg_bastion\" -> \"compute_bastion_01\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_api_01\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_api_02\" [label=\"protects\"];\n\"nsg_app\" -> \"compute_worker_01\" [label=\"protects\"];\n\"compute_bastion_01\" -> \"subnet_public\" [label=\"in_subnet\"];\n\"compute_api_01\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"compute_api_02\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"compute_worker_01\" -> \"subnet_app\" [label=\"in_subnet\"];\n\"lb_public\" -> \"apigw_main\" [label=\"routes_to\"];\n\"apigw_main\" -> \"compute_api_01\" [label=\"routes_to\"];\n\"apigw_main\" -> \"compute_api_02\" [label=\"routes_to\"];\n\"user_alice\" -> \"bucket_payments\" [label=\"created\"];\n\"user_alice\" -> \"adb_payments\" [label=\"created\"];\n\"user_devops\" -> \"bucket_audit_logs\" [label=\"created\"];\n}",
+  "diff_graph_dot": "digraph G {\n  node [shape=box];\n\"vcn_main\";\n\"subnet_public\";\n\"subnet_app\";\n\"subnet_db\";\n\"nsg_bastion\" [style=filled, fillcolor=\"yellow\"];\n\"nsg_app\" [style=filled, fillcolor=\"yellow\"];\n\"nsg_db\";\n\"compute_bastion_01\" [style=filled, fillcolor=\"yellow\"];\n\"compute_api_01\" [style=filled, fillcolor=\"yellow\"];\n\"compute_api_02\" [style=filled, fillcolor=\"yellow\"];\n\"compute_worker_01\" [style=filled, fillcolor=\"yellow\"];\n\"bucket_payments\" [style=filled, fillcolor=\"yellow\"];\n\"bucket_customer_exports\";\n\"bucket_audit_logs\";\n\"adb_payments\" [style=filled, fillcolor=\"yellow\"];\n\"adb_reporting\";\n\"lb_public\";\n\"apigw_main\";\n\"user_alice\";\n\"user_devops\";\n\"bucket_tmp_migration\" [style=filled, fillcolor=\"green\"];\n\"subnet_public\" -> \"vcn_main\";\n\"subnet_app\" -> \"vcn_main\";\n\"subnet_app\" -> \"adb_payments\";\n\"subnet_app\" -> \"adb_reporting\";\n\"subnet_db\" -> \"vcn_main\";\n\"nsg_bastion\" -> \"compute_bastion_01\";\n\"nsg_app\" -> \"compute_api_01\";\n\"nsg_app\" -> \"compute_api_02\";\n\"nsg_app\" -> \"compute_worker_01\";\n\"compute_bastion_01\" -> \"subnet_public\";\n\"compute_api_01\" -> \"subnet_app\";\n\"compute_api_02\" -> \"subnet_app\";\n\"compute_worker_01\" -> \"subnet_app\";\n\"lb_public\" -> \"apigw_main\";\n\"apigw_main\" -> \"compute_api_01\";\n\"apigw_main\" -> \"compute_api_02\";\n\"user_alice\" -> \"bucket_payments\";\n\"user_alice\" -> \"adb_payments\";\n\"user_devops\" -> \"bucket_audit_logs\";\n}",
   "delta": {
     "resources": {
       "added": [
-        "bucket_tmp_export"
+        "bucket_tmp_migration"
       ],
       "removed": [],
       "changed": [
         {
-          "resource_id": "adb_orders",
+          "resource_id": "adb_payments",
           "changes": [
             {
               "field": "encrypted",
@@ -4020,7 +4032,7 @@
           ]
         },
         {
-          "resource_id": "bucket_orders",
+          "resource_id": "bucket_payments",
           "changes": [
             {
               "field": "encrypted",
@@ -4045,47 +4057,42 @@
           ]
         },
         {
+          "resource_id": "compute_api_01",
+          "changes": [
+            {
+              "field": "avg_cpu_utilization",
+              "before": 2.0,
+              "after": 2.5
+            }
+          ]
+        },
+        {
+          "resource_id": "compute_api_02",
+          "changes": [
+            {
+              "field": "avg_cpu_utilization",
+              "before": 2.8,
+              "after": 2.9
+            }
+          ]
+        },
+        {
           "resource_id": "compute_bastion_01",
           "changes": [
             {
               "field": "avg_cpu_utilization",
-              "before": 1.1,
-              "after": 9.0
+              "before": 1.2,
+              "after": 6.0
             },
             {
               "field": "memory_gb",
-              "before": 16,
-              "after": 8
+              "before": 32,
+              "after": 16
             },
             {
               "field": "ocpus",
               "before": 4,
               "after": 2
-            },
-            {
-              "field": "shape",
-              "before": "t3.large",
-              "after": "t3.medium"
-            }
-          ]
-        },
-        {
-          "resource_id": "compute_web_01",
-          "changes": [
-            {
-              "field": "avg_cpu_utilization",
-              "before": 2.0,
-              "after": 2.2
-            }
-          ]
-        },
-        {
-          "resource_id": "compute_web_02",
-          "changes": [
-            {
-              "field": "avg_cpu_utilization",
-              "before": 2.4,
-              "after": 2.7
             }
           ]
         },
@@ -4094,7 +4101,7 @@
           "changes": [
             {
               "field": "avg_cpu_utilization",
-              "before": 3.2,
+              "before": 3.5,
               "after": 3.8
             }
           ]
@@ -4166,19 +4173,19 @@
       "added": [
         {
           "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-          "resource_id": "bucket_tmp_export"
+          "resource_id": "bucket_tmp_migration"
         },
         {
           "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-          "resource_id": "bucket_tmp_export"
+          "resource_id": "bucket_tmp_migration"
         },
         {
           "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-          "resource_id": "bucket_tmp_export"
+          "resource_id": "bucket_tmp_migration"
         },
         {
           "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-          "resource_id": "adb_orders"
+          "resource_id": "adb_payments"
         }
       ],
       "removed": [
@@ -4188,19 +4195,19 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-          "resource_id": "bucket_orders"
+          "resource_id": "bucket_payments"
         },
         {
           "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-          "resource_id": "bucket_orders"
+          "resource_id": "bucket_payments"
         },
         {
           "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-          "resource_id": "bucket_orders"
+          "resource_id": "bucket_payments"
         },
         {
           "rule_id": "OCI.SEC.DB.PUBLIC_AND_NO_ENCRYPT",
-          "resource_id": "adb_orders"
+          "resource_id": "adb_payments"
         },
         {
           "rule_id": "OCI.SEC.NET.SSH_PUBLIC",
@@ -4212,21 +4219,21 @@
         },
         {
           "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
-          "resource_id": "adb_analytics"
+          "resource_id": "adb_payments"
         },
         {
           "rule_id": "OCI.SEC.PATH.PUBLIC_SSH_TO_DB",
-          "resource_id": "adb_orders"
+          "resource_id": "adb_reporting"
         }
       ],
       "persisted": [
         {
           "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-          "resource_id": "compute_web_01"
+          "resource_id": "compute_api_01"
         },
         {
           "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
-          "resource_id": "compute_web_02"
+          "resource_id": "compute_api_02"
         },
         {
           "rule_id": "OCI.PERF.COMPUTE.RIGHTSIZING",
@@ -4234,23 +4241,23 @@
         },
         {
           "rule_id": "OCI.SEC.BUCKET.LOGGING_DISABLED",
-          "resource_id": "bucket_product_images"
+          "resource_id": "bucket_customer_exports"
         },
         {
           "rule_id": "OCI.SEC.BUCKET.PUBLIC_NO_ENCRYPT",
-          "resource_id": "bucket_product_images"
+          "resource_id": "bucket_customer_exports"
         },
         {
           "rule_id": "OCI.SEC.BUCKET.VERSIONING_DISABLED",
-          "resource_id": "bucket_product_images"
+          "resource_id": "bucket_customer_exports"
         },
         {
           "rule_id": "OCI.SEC.DB.BACKUP_DISABLED",
-          "resource_id": "adb_orders"
+          "resource_id": "adb_payments"
         },
         {
           "rule_id": "OCI.SEC.DB.PUBLIC_ENDPOINT",
-          "resource_id": "adb_analytics"
+          "resource_id": "adb_reporting"
         },
         {
           "rule_id": "OCI.SEC.NET.RDP_PUBLIC",
