@@ -2,6 +2,9 @@
 import json
 from pathlib import Path
 from datetime import datetime
+import os, signal, sys
+from io import StringIO
+import contextlib
 
 import streamlit as st
 import graphviz
@@ -52,6 +55,12 @@ use_llm_recos = st.sidebar.checkbox("Generate recommendations with LLM", value=F
 
 run_btn = st.sidebar.button("Run Audit", type="primary")
 
+if st.sidebar.button("Stop Streamlit", type="secondary"):
+    st.warning("Stopping Streamlit...")
+    # Windows-friendly hard exit
+    os.kill(os.getpid(), signal.SIGTERM)
+    sys.exit(0)
+
 # ---- Persist last audit result across reruns ----
 result = st.session_state.get("last_result")
 
@@ -76,16 +85,25 @@ else:
     pillar_scores = scores.get("pillar_scores", {})
 
     # ---- Scores summary ----
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Global Score", scores.get("global_score"))
-    c2.metric("Security (compat)", scores.get("security_score"))
-    c3.metric("Performance (compat)", scores.get("performance_score"))
+
 
     if "delta" in result:
         st.subheader("Dynamic Evolution (Diff Scan)")
         st.caption("Comparison between baseline snapshot and current snapshot.")
 
         d = result["delta"]
+
+        st.subheader("Well-Architected Pillar Scores")
+        if pillar_scores:
+            cols = st.columns(6)
+            pillars = ["SECURITY", "RELIABILITY", "PERFORMANCE", "COST", "OPERATIONAL_EXCELLENCE"]
+            for i, p in enumerate(pillars):
+                cols[i].metric(p, pillar_scores.get(p, 0))
+            cols[5].metric("Global Score", scores.get("global_score"))
+        else:
+            st.info("No pillar_scores found (check scoring engine).")
+
+        st.divider()
 
         c1, c2, c3 = st.columns(3)
         c1.metric("Resources added", len(d["resources"]["added"]))
@@ -99,16 +117,7 @@ else:
 
     st.divider()
 
-    st.subheader("Well-Architected Pillar Scores")
-    if pillar_scores:
-        cols = st.columns(5)
-        pillars = ["SECURITY", "RELIABILITY", "PERFORMANCE", "COST", "OPERATIONAL_EXCELLENCE"]
-        for i, p in enumerate(pillars):
-            cols[i].metric(p, pillar_scores.get(p, 0))
-    else:
-        st.info("No pillar_scores found (check scoring engine).")
 
-    st.divider()
 
     # ---- Graph ----
     if "baseline_graph_dot" in result:
@@ -255,3 +264,4 @@ else:
             st.caption(f"Saved locally as: {out_path}")
     else:
         st.info("Enable LLM report generation in the sidebar to generate an audit report.")
+
